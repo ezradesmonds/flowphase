@@ -1,0 +1,150 @@
+import type { BrokerFlow } from "@/domain/market";
+import type {
+  InventoryRow,
+  FlowGroup,
+  BrokerProfile,
+} from "@/domain/intelligence";
+import { brokerProfile, BROKER_REGISTRY } from "@/config/brokers";
+export const SHARES_PER_LOT = 100;
+export function calculateInventory(
+  flows: readonly BrokerFlow[],
+  ticker: string,
+  start: string,
+  end: string,
+  price: number | null = null,
+  registry: readonly BrokerProfile[] = BROKER_REGISTRY,
+): InventoryRow[] {
+  const grouped = new Map<string, BrokerFlow[]>();
+  for (const row of flows.filter(
+    (r) => r.ticker === ticker && r.date >= start && r.date <= end,
+  )) {
+    if (![row.buyLot, row.sellLot].every((v) => Number.isFinite(v) && v >= 0))
+      continue;
+    const code = row.brokerCode.trim().toUpperCase();
+    grouped.set(code, [...(grouped.get(code) ?? []), row]);
+  }
+  return [...grouped]
+    .map(([brokerCode, rows]) => {
+      const days = new Map<string, { buy: number; sell: number }>();
+      for (const r of rows) {
+        const d = days.get(r.date) ?? { buy: 0, sell: 0 };
+        d.buy += r.buyLot;
+        d.sell += r.sellLot;
+        days.set(r.date, d);
+      }
+      let running = 0,
+        peak = 0;
+      const sorted = [...days].sort(([a], [b]) => a.localeCompare(b));
+      const history = sorted.map(([date, d]) => {
+        const net = d.buy - d.sell;
+        running += net;
+        peak = Math.max(peak, running);
+        return { date, net, running };
+      });
+      const grossBuyLot = rows.reduce((n, r) => n + r.buyLot, 0),
+        grossSellLot = rows.reduce((n, r) => n + r.sellLot, 0);
+      const value = (side: "buy" | "sell") =>
+        rows.reduce<number | null>((n, r) => {
+          const lot = side === "buy" ? r.buyLot : r.sellLot;
+          const v = side === "buy" ? r.buyValue : r.sellValue;
+          return n === null ||
+            (lot > 0 && (v === undefined || !Number.isFinite(v)))
+            ? null
+            : n + (v ?? 0);
+        }, 0);
+      const grossBuyValue = value("buy"),
+        grossSellValue = value("sell");
+      const average = (
+        side: "buy" | "sell",
+        lots: number,
+        total: number | null,
+      ) => {
+        if (!lots) return null;
+        if (total !== null) return total / (lots * SHARES_PER_LOT);
+        let weighted = 0;
+        for (const r of rows) {
+          const lot = side === "buy" ? r.buyLot : r.sellLot,
+            p = side === "buy" ? r.averageBuy : r.averageSell;
+          if (lot && (p === undefined || !Number.isFinite(p))) return null;
+          weighted += lot * (p ?? 0);
+        }
+        return weighted / lots;
+      };
+      const buys = sorted.filter(([, d]) => d.buy > 0),
+        sells = sorted.filter(([, d]) => d.sell > 0);
+      const remaining = Math.max(0, running);
+      return {
+        ticker,
+        brokerCode,
+        profile: brokerProfile(brokerCode, registry),
+        periodStart: start,
+        periodEnd: end,
+        grossBuyLot,
+        grossSellLot,
+        grossBuyValue,
+        grossSellValue,
+        netValue:
+          grossBuyValue === null || grossSellValue === null
+            ? null
+            : grossBuyValue - grossSellValue,
+        cumulativeNetLot: running,
+        peakEstimatedInventory: peak,
+        estimatedRemainingInventory: remaining,
+        inventoryReduction: peak - remaining,
+        remainingRatio: peak > 0 ? remaining / peak : null,
+        weightedAverageBuyPrice: average("buy", grossBuyLot, grossBuyValue),
+        weightedAverageSellPrice: average("sell", grossSellLot, grossSellValue),
+        firstBuyDate: buys[0]?.[0] ?? null,
+        lastBuyDate: buys.at(-1)?.[0] ?? null,
+        firstSellDate: sells[0]?.[0] ?? null,
+        lastSellDate: sells.at(-1)?.[0] ?? null,
+        buyConsistency: history.filter((d) => d.net > 0).length / sorted.length,
+        sellConsistency:
+          history.filter((d) => d.net < 0).length / sorted.length,
+        activeTradingDays: sorted.length,
+        estimatedMarketValue:
+          price !== null && price > 0
+            ? remaining * SHARES_PER_LOT * price
+            : null,
+        role:
+          running > 0 ? "Accumulator" : running < 0 ? "Distributor" : "Neutral",
+        startingInventory: "UNKNOWN" as const,
+        history,
+      };
+    })
+    .sort((a, b) => b.cumulativeNetLot - a.cumulativeNetLot)
+    .map((r, i, rows) => ({
+      ...r,
+      role:
+        r.cumulativeNetLot > 0 && i === 0
+          ? "Dominant Accumulator"
+          : r.cumulativeNetLot < 0 && i === rows.length - 1
+            ? "Dominant Distributor"
+            : r.role,
+    }));
+}
+export function aggregateGroups(rows: InventoryRow[]): FlowGroup[] {
+  return (
+    [
+      "INSTITUTIONAL_ASSOCIATED",
+      "RETAIL_ACCESSIBLE",
+      "MIXED_OR_UNKNOWN",
+    ] as const
+  ).map((classification) => {
+    const selected = rows.filter(
+      (r) => r.profile.classification === classification,
+    );
+    return {
+      classification,
+      netLot: selected.reduce((n, r) => n + r.cumulativeNetLot, 0),
+      netValue: selected.some((r) => r.netValue === null)
+        ? null
+        : selected.reduce((n, r) => n + (r.netValue ?? 0), 0),
+      brokers: selected.length,
+      remaining: selected.reduce(
+        (n, r) => n + r.estimatedRemainingInventory,
+        0,
+      ),
+    };
+  });
+}

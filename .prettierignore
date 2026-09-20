@@ -1,0 +1,8 @@
+node_modules
+.next
+.next-demo
+package-lock.json
+docs/sources
+next-env.d.ts
+tradingview-test
+.flowphase

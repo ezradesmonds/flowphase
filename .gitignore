@@ -1,0 +1,22 @@
+node_modules/
+.next/
+.next-demo/
+out/
+coverage/
+*.tsbuildinfo
+.env*
+!.env.example
+*.log
+.DS_Store
+test-results/
+.playwright/
+*.pem
+*.key
+cookies*.json
+session*.json
+secrets/
+docs/sources/
+tradingview-test/
+
+# Local calculated research cache
+.flowphase/
