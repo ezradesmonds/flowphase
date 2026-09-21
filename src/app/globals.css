@@ -356,6 +356,28 @@ small { font-size: 12px; }
 
 .nav-scrim { display: none; }
 .mobile-menu, .mobile-close { display: none; }
+.theme-toggle {
+  min-height: 27px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #c6ced9;
+  background: #070a0e;
+  border: 1px solid #2a323d;
+  border-radius: 2px;
+  font: 600 8px/1 var(--data);
+  letter-spacing: .45px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  color: var(--amber);
+  border-color: #79551c;
+  background: #151005;
+}
 
 /* ── Page Heading ── */
 .page-heading {
@@ -2021,15 +2043,9 @@ tbody tr:hover { background: #0b1118; }
 }
 
 @media (max-width: 700px) {
-  .sidebar, .is-collapsed .sidebar {
-    display: flex;
-    top: 30px;
-    width: 248px;
-    background: #070a0e;
-  }
   .terminal-rail .terminal-brand { position: sticky; left: 0; z-index: 2; background: #070a0e; }
   .terminal-rail-right { display: none !important; }
-  .mobile-menu, .mobile-close { display: grid; }
+  .mobile-menu, .mobile-close { display: none !important; }
   .topbar { top: 30px; height: 43px; }
   .workspace main { padding: 6px; }
   .page-heading { align-items: flex-start; padding: 9px; }
@@ -2038,3 +2054,110 @@ tbody tr:hover { background: #0b1118; }
   .summary-grid { gap: 4px; }
   .panel-heading { min-height: 42px; }
 }
+
+/* ── User-selectable light workstation theme ─────────────────────────── */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #edf0f3;
+  --surface: #ffffff;
+  --surface-raised: #f7f8fa;
+  --surface-hover: #eef2f6;
+  --border: #bac3ce;
+  --border-subtle: #dce1e7;
+  --text: #17202b;
+  --muted: #647184;
+  --blue: #087f91;
+  --blue-dim: #5b8f98;
+  --green: #087f55;
+  --red: #c9364a;
+  --amber: #a85c00;
+  --slate: #566579;
+  --neutral: #647184;
+  --accent: #a85c00;
+  --accent-glow: rgba(168, 92, 0, .1);
+}
+html[data-theme="light"] body { background: var(--bg); color: var(--text); }
+html[data-theme="light"] .terminal-rail {
+  background: #dce2e8;
+  border-bottom-color: #aeb8c4;
+}
+html[data-theme="light"] .terminal-rail a,
+html[data-theme="light"] .terminal-rail span { color: #506074; border-right-color: #b8c1cc; }
+html[data-theme="light"] .terminal-rail a:hover,
+html[data-theme="light"] .terminal-rail a[aria-current="page"] { color: #101820; background: #f7f8fa; }
+html[data-theme="light"] .terminal-rail .terminal-brand { color: #087f91; background: #dce2e8; }
+html[data-theme="light"] .terminal-rail-right { color: #6b7787 !important; }
+html[data-theme="light"] .topbar {
+  background: rgba(245, 247, 249, .96);
+  border-bottom-color: #c4cbd4;
+  box-shadow: inset 0 -1px #fff;
+}
+html[data-theme="light"] .global-search,
+html[data-theme="light"] .theme-toggle,
+html[data-theme="light"] .button,
+html[data-theme="light"] .field input,
+html[data-theme="light"] .field select,
+html[data-theme="light"] select {
+  color: #263241;
+  background: #fff;
+  border-color: #aeb8c4;
+}
+html[data-theme="light"] .global-search input { color: #17202b; }
+html[data-theme="light"] .global-search input::placeholder { color: #778496; }
+html[data-theme="light"] .theme-toggle:hover,
+html[data-theme="light"] .theme-toggle:focus-visible { color: #8c4d00; background: #fff4df; border-color: #bd7926; }
+html[data-theme="light"] .market-status { color: #526174; }
+html[data-theme="light"] .demo-badge { color: #824700; background: #fff2d8; border-color: #d7a75f; }
+html[data-theme="light"] .avatar { color: #087f91; background: #e3ebf0; }
+html[data-theme="light"] .page-heading,
+html[data-theme="light"] .panel,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .detail-metric,
+html[data-theme="light"] .phase-timeline {
+  color: #17202b;
+  background: #fff;
+  border-color: #bcc5cf;
+}
+html[data-theme="light"] .page-heading { border-top-color: #8291a4; }
+html[data-theme="light"] .page-heading p,
+html[data-theme="light"] .panel-heading p { color: #607084; }
+html[data-theme="light"] .panel-heading,
+html[data-theme="light"] .analysis-tabs,
+html[data-theme="light"] th {
+  background: #e5ebf1;
+  border-color: #bcc7d2;
+}
+html[data-theme="light"] .panel-heading h2 { color: #17202b; }
+html[data-theme="light"] .analysis-tabs button { color: #536276; }
+html[data-theme="light"] .analysis-tabs button[aria-selected="true"] { color: #111820; background: #fff; }
+html[data-theme="light"] .analysis-toolbar,
+html[data-theme="light"] .filters,
+html[data-theme="light"] .replay-controls,
+html[data-theme="light"] .chart-caption,
+html[data-theme="light"] .method-callout { background: #f4f6f8; border-color: #c8d0d9; }
+html[data-theme="light"] .demo-notice,
+html[data-theme="light"] .source-strip { color: #754100; background: #fff5df; border-color: #d5a24f; }
+html[data-theme="light"] td { border-bottom-color: #dce1e7; }
+html[data-theme="light"] tbody tr:hover { background: #eef3f7; }
+html[data-theme="light"] .chart-container { border-color: #bcc5cf; }
+html[data-theme="light"] .phase-donut > div { background: #fff; }
+
+/* Interface prose always begins with a capital letter in the rendered UI. */
+.workspace main,
+.topbar-status { text-transform: capitalize; }
+.page-heading p,
+.panel-heading p,
+.demo-notice,
+.source-strip,
+.overview-intro,
+.stat-label,
+.stat-card p,
+.phase-badge,
+.phase-transition,
+.stock-name small,
+.panel-footnote,
+.panel-bottom-link,
+.chart-caption,
+.method-callout,
+.detail-metric > span,
+.footer { text-transform: capitalize; }

@@ -23,15 +23,24 @@ import { detectPhaseRegions } from "@/lib/phases/detect";
 import { PHASE_REGION_STYLES } from "@/lib/phases/styles";
 import { PhaseRegionsPrimitive } from "./phase-regions-primitive";
 
-function setup(element: HTMLDivElement) {
+type ChartTheme = "dark" | "light";
+
+function setup(element: HTMLDivElement, theme: ChartTheme) {
+  const light = theme === "light";
   const chart = createChart(element, {
     autoSize: true,
     layout: {
-      background: { type: ColorType.Solid, color: "#121822" },
-      textColor: "#929eaf",
+      background: {
+        type: ColorType.Solid,
+        color: light ? "#ffffff" : "#121822",
+      },
+      textColor: light ? "#5d6877" : "#929eaf",
       attributionLogo: true,
     },
-    grid: { vertLines: { color: "#202735" }, horzLines: { color: "#202735" } },
+    grid: {
+      vertLines: { color: light ? "#e6e9ee" : "#202735" },
+      horzLines: { color: light ? "#e6e9ee" : "#202735" },
+    },
     timeScale: { timeVisible: true },
     localization: { locale: "en-GB" },
   });
@@ -61,6 +70,7 @@ function MarketCanvas({
   regions,
   autoFit = false,
   alerts = [],
+  theme,
   onSelectRegion,
 }: {
   candles: MarketCandle[];
@@ -68,6 +78,7 @@ function MarketCanvas({
   regions: readonly PhaseRegion[];
   autoFit?: boolean;
   alerts?: Intelligence["alerts"];
+  theme: ChartTheme;
   onSelectRegion?: (region: PhaseRegion) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
@@ -75,7 +86,7 @@ function MarketCanvas({
   const fitted = useRef(false);
   useEffect(() => {
     if (!container.current) return;
-    const instance = setup(container.current);
+    const instance = setup(container.current, theme);
     series.current = instance;
     fitted.current = false;
     return () => {
@@ -83,7 +94,7 @@ function MarketCanvas({
       instance.price.detachPrimitive(instance.phaseOverlay);
       instance.chart.remove();
     };
-  }, []);
+  }, [theme]);
   useEffect(() => {
     const current = series.current;
     if (!current) return;
@@ -183,6 +194,7 @@ export function TradingViewMarketChart({
   const [showPhases, setShowPhases] = useState(true);
   const [replayIndex, setReplayIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [chartTheme, setChartTheme] = useState<ChartTheme>("dark");
   const [result, setResult] = useState<{
     key: string;
     data?: CandleSnapshot;
@@ -192,6 +204,22 @@ export function TradingViewMarketChart({
     data: initialAnalysis?.candles ?? undefined,
   });
   const [streamStatus, setStreamStatus] = useState("Updates paused");
+  useEffect(() => {
+    const onTheme = (event: Event) => {
+      const next = (event as CustomEvent<ChartTheme>).detail;
+      if (next === "dark" || next === "light") setChartTheme(next);
+    };
+    window.addEventListener("flowphase-theme", onTheme);
+    const frame = window.requestAnimationFrame(() => {
+      const current =
+        document.documentElement.dataset.theme === "light" ? "light" : "dark";
+      setChartTheme(current);
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("flowphase-theme", onTheme);
+    };
+  }, []);
   const key = `${ticker}:${timeframe}:${attempt}`;
   const current =
     result.key === key
@@ -457,12 +485,13 @@ export function TradingViewMarketChart({
         )}
       {data && data.candles.length > 0 && (
         <MarketCanvas
-          key={key}
+          key={`${key}:${chartTheme}`}
           candles={visibleCandles}
           autoFit={replay}
           timeframe={timeframe}
           regions={showPhases ? displayedRegions : []}
           alerts={intelligence?.alerts}
+          theme={chartTheme}
           onSelectRegion={setSelectedRegion}
         />
       )}
