@@ -17,14 +17,17 @@ import {
   Bell,
   Search,
   X,
+  Zap,
 } from "lucide-react";
+
 const nav = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/scanner", label: "Market Scanner", icon: ListFilter },
-  { href: "/stocks", label: "Stock Intelligence", icon: ChartCandlestick },
-  { href: "/alerts", label: "Alerts", icon: Bell },
-  { href: "/methodology", label: "Methodology", icon: BookOpen },
+  { href: "/", label: "Dashboard", shortcut: "F1", icon: LayoutDashboard },
+  { href: "/scanner", label: "Market Scanner", shortcut: "F2", icon: ListFilter },
+  { href: "/stocks", label: "Stock Intelligence", shortcut: "F3", icon: ChartCandlestick },
+  { href: "/alerts", label: "Alerts", shortcut: "F4", icon: Bell },
+  { href: "/methodology", label: "Methodology", shortcut: "F5", icon: BookOpen },
 ];
+
 export function Shell({
   children,
   demo = false,
@@ -37,6 +40,7 @@ export function Shell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [query, setQuery] = useState("");
+
   return (
     <div className={`app-shell ${collapsed ? "is-collapsed" : ""}`}>
       <a className="skip-link" href="#main">
@@ -52,20 +56,21 @@ export function Shell({
       <aside className={`sidebar ${mobile ? "mobile-open" : ""}`}>
         <Link href="/" className="brand">
           <span className="brand-mark">
-            <Activity size={23} />
+            <Activity size={18} strokeWidth={2.5} />
           </span>
           <span className="brand-word">
             Flow<span>Phase</span>
           </span>
+          <span className="brand-caption">Market cycle intelligence</span>
         </Link>
         <button
           className="mobile-close icon-button"
           aria-label="Close navigation"
           onClick={() => setMobile(false)}
         >
-          <X size={20} />
+          <X size={18} />
         </button>
-        <div className="sidebar-label">INTELLIGENCE</div>
+        <div className="sidebar-label">Navigation</div>
         <nav aria-label="Main navigation">
           {nav.map((item) => (
             <Link
@@ -83,7 +88,8 @@ export function Shell({
               }
               onClick={() => setMobile(false)}
             >
-              <item.icon size={19} />
+              <item.icon size={17} strokeWidth={1.8} />
+              <code>{item.shortcut}</code>
               <span>{item.label}</span>
               {item.href === "/scanner" && demo && <small>12</small>}
             </Link>
@@ -91,7 +97,7 @@ export function Shell({
         </nav>
         <div className="sidebar-bottom">
           <div className="workspace-note">
-            <FlaskConical size={19} />
+            <FlaskConical size={16} strokeWidth={1.8} />
             <strong>
               {demo ? "Demo workspace" : "IDX research workspace"}
             </strong>
@@ -101,7 +107,7 @@ export function Shell({
               Understand the evidence.
             </p>
             <Link href="/methodology">
-              Read methodology <ArrowUpRight size={14} />
+              Read methodology <ArrowUpRight size={13} />
             </Link>
           </div>
           <button
@@ -110,24 +116,45 @@ export function Shell({
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
-              <ChevronRight size={17} />
+              <ChevronRight size={16} />
             ) : (
               <>
-                <ChevronLeft size={17} />
-                <span>Collapse sidebar</span>
+                <ChevronLeft size={16} />
+                <span>Collapse</span>
               </>
             )}
           </button>
         </div>
       </aside>
       <div className="workspace">
+        <nav className="terminal-rail" aria-label="Function navigation">
+          <Link href="/" className="terminal-brand">
+            <Zap size={11} /> FLOWPHASE
+          </Link>
+          {nav.map((item) => {
+            const active =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+              >
+                <b>{item.shortcut}</b> {item.label}
+              </Link>
+            );
+          })}
+          <span className="terminal-rail-right">IDX · WYCKOFF RESEARCH</span>
+        </nav>
         <header className="topbar">
           <button
             className="mobile-menu icon-button"
             aria-label="Open navigation"
             onClick={() => setMobile(true)}
           >
-            <Menu size={22} />
+            <Menu size={20} />
           </button>
           <form
             className="global-search"
@@ -136,10 +163,10 @@ export function Shell({
               router.push(`/scanner?q=${encodeURIComponent(query)}`);
             }}
           >
-            <Search size={18} />
+            <Search size={15} strokeWidth={2} />
             <input
               aria-label="Search stocks"
-              placeholder="Search a ticker or company…"
+              placeholder="Search ticker or company…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -148,7 +175,7 @@ export function Shell({
           <div className="topbar-status">
             {!demo && <SourceStatus />}
             <span className="demo-badge">
-              {demo ? "DEMO MODE" : "SECTORS + TRADINGVIEW"}
+              {demo ? "DEMO" : "LIVE"}
             </span>
             <Link
               href="/settings"
@@ -169,7 +196,7 @@ export function Shell({
             </span>
             <Link href="/methodology">
               {demo ? "Demo research only" : "Market research"} · Not investment
-              advice <ArrowUpRight size={12} />
+              advice <ArrowUpRight size={11} />
             </Link>
           </footer>
         </main>

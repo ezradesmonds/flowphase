@@ -3,10 +3,11 @@ import {
   ArrowUpRight,
   FlaskConical,
   SearchX,
-  TriangleAlert,
+  CircleAlert,
 } from "lucide-react";
 import type { MarketPhase } from "@/domain/market";
 import { phaseLabel } from "@/lib/format";
+
 export function PhaseBadge({ phase }: { phase: MarketPhase }) {
   return (
     <span className={`phase-badge phase-${phase.toLowerCase()}`}>
@@ -15,15 +16,17 @@ export function PhaseBadge({ phase }: { phase: MarketPhase }) {
     </span>
   );
 }
+
 export function DemoNotice() {
   return (
     <div className="demo-notice">
-      <FlaskConical size={16} />
+      <FlaskConical size={15} strokeWidth={1.8} />
       <strong>DEMO DATA — NOT LIVE MARKET DATA</strong>
       <span>Synthetic analysis. Market candles are labeled separately.</span>
     </div>
   );
 }
+
 export function PageHeading({
   eyebrow,
   title,
@@ -48,6 +51,7 @@ export function PageHeading({
     </div>
   );
 }
+
 export function Panel({
   title,
   note,
@@ -74,6 +78,7 @@ export function Panel({
     </section>
   );
 }
+
 export function Confidence({ value }: { value: number }) {
   return (
     <div className="confidence">
@@ -87,6 +92,7 @@ export function Confidence({ value }: { value: number }) {
     </div>
   );
 }
+
 export function EmptyState({
   title = "No matching stocks",
   description = "Try another ticker or loosen your filters.",
@@ -98,17 +104,18 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <SearchX size={32} />
+      <SearchX size={30} strokeWidth={1.5} />
       <h2>{title}</h2>
       <p>{description}</p>
       {children}
     </div>
   );
 }
+
 export function ErrorState({ reset }: { reset: () => void }) {
   return (
     <div className="empty-state" role="alert">
-      <TriangleAlert size={32} />
+      <CircleAlert size={30} strokeWidth={1.5} />
       <h2>This view could not be loaded</h2>
       <p>
         Provider data is unavailable. Your local watchlist is unaffected. Try
@@ -120,6 +127,7 @@ export function ErrorState({ reset }: { reset: () => void }) {
     </div>
   );
 }
+
 export function Skeleton() {
   return (
     <div
@@ -133,6 +141,7 @@ export function Skeleton() {
     </div>
   );
 }
+
 export function DetailLink({ ticker }: { ticker: string }) {
   return (
     <Link
@@ -140,7 +149,7 @@ export function DetailLink({ ticker }: { ticker: string }) {
       href={`/stocks/${ticker}`}
       aria-label={`Analyze ${ticker}`}
     >
-      <ArrowUpRight size={18} />
+      <ArrowUpRight size={16} strokeWidth={2} />
     </Link>
   );
 }
