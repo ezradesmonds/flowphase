@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Layers, ScanLine } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Layers, ScanLine, Terminal } from "lucide-react";
 import type { ScannerResult } from "@/domain/market";
 import { PHASES } from "@/domain/market";
 import {
@@ -11,6 +11,7 @@ import {
   PhaseBadge,
 } from "./ui";
 import { phaseLabel, signed } from "@/lib/format";
+
 export function Overview({ rows }: { rows: ScannerResult[] }) {
   const counts = PHASES.map((phase) => ({
     phase,
@@ -22,40 +23,43 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
   const risk = [...rows]
     .sort((a, b) => b.distributionRisk - a.distributionRisk)
     .slice(0, 3);
+
   return (
-    <>
+    <div className="space-y-2 font-mono">
       <PageHeading
-        eyebrow="MARKET INTELLIGENCE / OVERVIEW"
-        title="See the flow. Understand the phase."
-        description="Explore price cycles and broker activity across the Indonesian market."
+        eyebrow="FLOWPHASE // MARKET OVERVIEW"
+        title="MARKET CYCLE INTELLIGENCE"
+        description="Track price cycle phase transitions, broker accumulation patterns, and institutional flow across the Indonesian stock market."
         action={
           <Link href="/scanner" className="button primary">
-            Open scanner <ArrowUpRight size={17} />
+            OPEN SCANNER [F2] <ArrowUpRight size={13} />
           </Link>
         }
       />
       <DemoNotice />
-      <div className="overview-intro">
-        <span>
-          <span className="tiny-square" /> Demo universe
+
+      <div className="overview-intro flex items-center justify-between text-[10px] text-slate-500 py-1 border-b border-slate-800 mb-2">
+        <span className="text-amber flex items-center gap-1.5 font-bold">
+          <Terminal size={12} /> DEMO UNIVERSE [SYNTHETIC SNAPSHOT]
         </span>
-        <span>
-          Fixture snapshot · 28 Aug 2026 <span className="divider">/</span> 12
-          illustrative scenarios
+        <span className="text-slate-400">
+          FIXTURE DATE: 28 AUG 2026 // 12 ILLUSTRATIVE SCENARIOS
         </span>
       </div>
+
       <div className="summary-grid">
-        <div className="stat-card total-card">
+        <div className="stat-card total-card" style={{ borderTop: "2px solid var(--cyan)" }}>
           <div className="stat-label">
-            <span>Stocks in demo</span>
-            <ScanLine size={18} />
+            <span>UNIVERSE</span>
+            <ScanLine size={13} className="text-cyan" />
           </div>
-          <div className="stat-value">
+          <div className="stat-value text-cyan">
             {rows.length}
-            <span>IDX tickers</span>
+            <span>TICKERS</span>
           </div>
-          <p>Local fixtures · no live scan</p>
+          <p>LOCAL DETERMINISTIC FIXTURES</p>
         </div>
+
         {counts.map(({ phase, count }) => (
           <Link
             href={`/scanner?phase=${phase}`}
@@ -70,17 +74,18 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
               {count}
               <span>{Math.round((count / rows.length) * 100)}%</span>
             </div>
-            <p>
-              View scenarios <ArrowRight size={12} />
+            <p className="flex items-center gap-1">
+              INSPECT <ArrowRight size={10} />
             </p>
           </Link>
         ))}
       </div>
+
       <div className="overview-middle">
         <Panel
-          title="Market phase distribution"
-          note="A cross-section of the demo universe"
-          action={<span className="subtle-tag">12 STOCKS</span>}
+          title="[SEC.01 // PHASE_DISTRIBUTION]"
+          note="CROSS-SECTION OF DEMO UNIVERSE"
+          action={<span className="subtle-tag">{rows.length} STOCKS</span>}
         >
           <div className="distribution-layout">
             <div
@@ -91,9 +96,9 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
                 .join(", ")}
             >
               <div>
-                <Layers size={21} />
-                <strong>12</strong>
-                <span>demo stocks</span>
+                <Layers size={18} className="text-amber" />
+                <strong className="text-lg text-white font-bold">{rows.length}</strong>
+                <span className="text-[9px] text-slate-400">TICKERS</span>
               </div>
             </div>
             <div className="distribution-legend">
@@ -112,16 +117,16 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
             </div>
           </div>
           <div className="panel-footnote">
-            Phase labels illustrate different scenarios, not current IDX
-            conditions.
+            PHASE REGION CLASSIFICATION BASED ON DETERMINISTIC HEURISTICS
           </div>
         </Panel>
+
         <Panel
-          title="Recent phase changes"
-          note="Authored events in the demo timeline"
+          title="[SEC.02 // TIMELINE_EVENTS]"
+          note="AUTHORED TRANSITION EVENTS"
           action={
-            <Link href="/cycle-replay" className="text-link">
-              Replay <ArrowUpRight size={14} />
+            <Link href="/cycle-replay" className="button text-[10px] text-amber">
+              REPLAY [↵] <ArrowUpRight size={11} />
             </Link>
           }
         >
@@ -143,54 +148,55 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
                     <small>{r.companyName}</small>
                   </strong>
                   <div className="phase-transition">
-                    <span>{i === 0 ? "Accumulation" : "Pompom"}</span>
-                    <ArrowRight size={12} />
+                    <span>{i === 0 ? "Akumulasi" : "Pompom"}</span>
+                    <ArrowRight size={10} />
                     <PhaseBadge phase={r.currentPhase} />
                   </div>
                 </div>
                 <span className="event-date">
-                  {["06 Jul", "03 Aug", "03 Aug", "03 Aug"][i]}
-                  <small>Demo event</small>
+                  {["06 JUL", "03 AUG", "03 AUG", "03 AUG"][i]}
+                  <small>DEMO EVENT</small>
                 </span>
               </Link>
             ))}
           </div>
         </Panel>
       </div>
+
       <div className="two-column">
         <Panel
-          title="Accumulation candidates"
-          note="Illustrative accumulation evidence, ranked by confidence"
-          action={<span className="section-number">01</span>}
+          title="[SEC.03 // ACCUMULATION_CANDIDATES]"
+          note="RANKED BY ESTIMATED CONFIDENCE"
+          action={<span className="section-number">SEC 03</span>}
         >
           <div className="table-scroll">
             <table className="compact-table">
               <thead>
                 <tr>
-                  <th>Stock</th>
-                  <th>Phase confidence</th>
-                  <th>Cohort net flow</th>
-                  <th>
-                    <span className="sr-only">View</span>
-                  </th>
+                  <th>TICKER</th>
+                  <th>CONFIDENCE</th>
+                  <th>NET FLOW (COHORT)</th>
+                  <th className="text-right">ACTION</th>
                 </tr>
               </thead>
               <tbody>
                 {accumulation.map((r) => (
                   <tr key={r.ticker}>
                     <td>
-                      <Link className="stock-name" href={`/stocks/${r.ticker}`}>
+                      <Link className="text-cyan hover:text-amber font-bold" href={`/stocks/${r.ticker}`}>
                         {r.ticker}
-                        <small>{r.companyName}</small>
+                        <small className="block text-[9.5px] text-slate-400 font-normal">
+                          {r.companyName}
+                        </small>
                       </Link>
                     </td>
                     <td>
                       <Confidence value={r.confidence} />
                     </td>
-                    <td className="positive mono">
-                      {signed(r.cumulativeNetFlow)} <small>lots</small>
+                    <td className="positive tabular-nums font-bold">
+                      {signed(r.cumulativeNetFlow)} <small className="text-slate-400 font-normal">LOTS</small>
                     </td>
-                    <td>
+                    <td className="text-right">
                       <DetailLink ticker={r.ticker} />
                     </td>
                   </tr>
@@ -199,58 +205,68 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
             </table>
           </div>
           <Link
-            className="panel-bottom-link"
+            className="panel-footnote flex items-center justify-between text-cyan hover:text-amber"
             href="/scanner?phase=AKUMULASI"
           >
-            Explore accumulation scenarios <ArrowRight size={15} />
+            <span>VIEW ALL ACCUMULATION SCENARIOS</span>
+            <ArrowRight size={12} />
           </Link>
         </Panel>
+
         <Panel
-          title="Distribution risk watch"
-          note="Higher scores indicate more illustrative warning signs"
-          action={<span className="section-number">02</span>}
+          title="[SEC.04 // DISTRIBUTION_RISK_WATCH]"
+          note="EVALUATED BY DISTRIBUTION RISK METER"
+          action={<span className="section-number">SEC 04</span>}
         >
-          <div className="risk-list">
+          <div className="p-2 space-y-1.5">
             {risk.map((r) => (
-              <Link href={`/stocks/${r.ticker}`} key={r.ticker}>
-                <div className="ticker-avatar">{r.ticker.slice(0, 2)}</div>
-                <div className="risk-stock">
-                  <strong>{r.ticker}</strong>
-                  <small>{r.companyName}</small>
+              <Link
+                href={`/stocks/${r.ticker}`}
+                key={r.ticker}
+                className="p-2 bg-slate-950 border border-slate-800 hover:border-slate-700 flex items-center justify-between transition-colors text-xs"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-slate-900 border border-slate-800 rounded-xs flex items-center justify-center text-amber font-bold text-[10px]">
+                    {r.ticker.slice(0, 2)}
+                  </div>
+                  <div>
+                    <strong className="text-white font-bold block">{r.ticker}</strong>
+                    <small className="text-slate-400 text-[9.5px]">{r.companyName}</small>
+                  </div>
                 </div>
-                <div className="risk-score">
-                  <strong>
+
+                <div className="w-28 text-right">
+                  <div className="text-red font-bold tabular-nums">
                     {r.distributionRisk}
-                    <small>/100</small>
-                  </strong>
-                  <div className="meter danger">
+                    <small className="text-slate-500 font-normal">/100</small>
+                  </div>
+                  <div className="meter danger mt-1">
                     <i style={{ width: `${r.distributionRisk}%` }} />
                   </div>
                 </div>
-                <ArrowUpRight size={16} />
               </Link>
             ))}
           </div>
           <div className="panel-footnote">
-            A risk score is not a recommendation to buy or sell.
+            RISK EVALUATION IS AN OBJECTIVE SIGNAL, NOT DIRECT TRADING ADVICE
           </div>
         </Panel>
       </div>
+
       <div className="method-callout">
         <div className="callout-icon">
-          <Layers size={21} />
+          <Layers size={16} />
         </div>
         <div>
-          <h2>Evidence first. Interpretation second.</h2>
+          <h2>EVIDENCE FIRST. INTERPRETATION SECOND.</h2>
           <p>
-            Understand what estimated inventory can tell you—and where the data
-            stops.
+            Understand transaction-flow inventory limits and where data boundaries are drawn.
           </p>
         </div>
         <Link href="/methodology">
-          Explore the methodology <ArrowUpRight size={16} />
+          METHODOLOGY AUDIT <ArrowUpRight size={13} />
         </Link>
       </div>
-    </>
+    </div>
   );
 }

@@ -27,6 +27,8 @@ import {
   ArrowRight,
   Building2,
   PieChart,
+  Terminal,
+  ScanLine,
 } from "lucide-react";
 import type { Intelligence, MarketAlert } from "@/domain/intelligence";
 import { CORE_PHASES } from "@/domain/intelligence";
@@ -260,7 +262,7 @@ export function IntelligenceDashboard({
     };
   }, [phaseCounts, analyses.length]);
 
-  // Top Opportunities and Risks (Dynamically extracted from actual API stock metrics)
+  // Top Opportunities and Risks
   const topOpportunities = useMemo(() => {
     const list: {
       title: string;
@@ -269,7 +271,6 @@ export function IntelligenceDashboard({
       metric: string;
     }[] = [];
 
-    // 1. Highest Confidence Accumulation Candidate
     const accCandidates = enrichedStocks
       .filter((s) => s.phase === "AKUMULASI")
       .sort((a, b) => b.confidence - a.confidence);
@@ -278,11 +279,10 @@ export function IntelligenceDashboard({
         title: "Top Accumulation Candidate",
         item: accCandidates[0],
         badge: "AKUMULASI",
-        metric: `Confidence ${accCandidates[0].confidence}%`,
+        metric: `CONFIDENCE ${accCandidates[0].confidence}%`,
       });
     }
 
-    // 2. Highest Relative Volume (RVOL)
     const topRvol = [...enrichedStocks]
       .filter((s) => (s.priceVolume?.relativeVolume ?? 0) > 0)
       .sort(
@@ -299,7 +299,6 @@ export function IntelligenceDashboard({
       });
     }
 
-    // 3. Any Pompom Attention Candidate if present in API
     const pompomCandidate = enrichedStocks
       .filter((s) => s.phase === "POMPOM")
       .sort((a, b) => b.confidence - a.confidence)[0];
@@ -308,37 +307,22 @@ export function IntelligenceDashboard({
         title: "Pompom Attention Candidate",
         item: pompomCandidate,
         badge: "POMPOM",
-        metric: `Confidence ${pompomCandidate.confidence}%`,
+        metric: `CONFIDENCE ${pompomCandidate.confidence}%`,
       });
     }
 
-    // 4. Any Menggoreng Candidate if present in API
-    const gorengCandidate = enrichedStocks
-      .filter((s) => s.phase === "MENGGORENG")
-      .sort((a, b) => b.confidence - a.confidence)[0];
-    if (gorengCandidate) {
-      list.push({
-        title: "Menggoreng Candidate",
-        item: gorengCandidate,
-        badge: "MENGGORENG",
-        metric: `RVOL ${num(gorengCandidate.priceVolume?.relativeVolume, 2)}x`,
-      });
-    }
-
-    // 5. Any Distribution Warning if present in API
     const distWarning = enrichedStocks
       .filter((s) => s.phase === "DISTRIBUSI" || s.state === "DISTRIBUSI")
       .sort((a, b) => b.confidence - a.confidence)[0];
     if (distWarning) {
       list.push({
-        title: "Distribution Warning",
+        title: "Distribution Risk Warning",
         item: distWarning,
         badge: "DISTRIBUSI",
-        metric: `Confidence ${distWarning.confidence}%`,
+        metric: `CONFIDENCE ${distWarning.confidence}%`,
       });
     }
 
-    // 6. Largest Institutional Net Buy Flow
     const topNetBuy = [...enrichedStocks]
       .filter((s) => (s.instNetLot ?? 0) > 0)
       .sort((a, b) => (b.instNetLot ?? 0) - (a.instNetLot ?? 0))[0];
@@ -347,11 +331,10 @@ export function IntelligenceDashboard({
         title: "Largest Institutional Net Buy",
         item: topNetBuy,
         badge: "FLOW",
-        metric: `+${num(topNetBuy.instNetLot)} lot`,
+        metric: `+${num(topNetBuy.instNetLot)} LOT`,
       });
     }
 
-    // 7. Institutional Net Outflow
     const topNetSell = [...enrichedStocks]
       .filter((s) => (s.instNetLot ?? 0) < 0)
       .sort((a, b) => (a.instNetLot ?? 0) - (b.instNetLot ?? 0))[0];
@@ -360,57 +343,18 @@ export function IntelligenceDashboard({
         title: "Institutional Net Outflow",
         item: topNetSell,
         badge: "FLOW",
-        metric: `${num(topNetSell.instNetLot)} lot`,
+        metric: `${num(topNetSell.instNetLot)} LOT`,
       });
     }
 
-    // 8. Top Price Return Performer
-    const topGainer = [...enrichedStocks]
-      .filter((s) => s.priceReturn !== null && s.priceReturn > 0)
-      .sort((a, b) => (b.priceReturn ?? 0) - (a.priceReturn ?? 0))[0];
-    if (topGainer && !list.some((c) => c.item.ticker === topGainer.ticker)) {
-      list.push({
-        title: "Top Price Performer",
-        item: topGainer,
-        badge: topGainer.phase,
-        metric: `+${((topGainer.priceReturn ?? 0) * 100).toFixed(2)}%`,
-      });
-    }
-
-    // 9. Secondary High Confidence Accumulation Candidate
-    if (accCandidates[1] && !list.some((c) => c.item.ticker === accCandidates[1].ticker)) {
-      list.push({
-        title: "Strong Accumulation Candidate",
-        item: accCandidates[1],
-        badge: "AKUMULASI",
-        metric: `Confidence ${accCandidates[1].confidence}%`,
-      });
-    }
-
-    // 10. Most Active Signal Alerts
-    const topAlerted = [...enrichedStocks]
-      .filter((s) => s.alerts.length > 0)
-      .sort((a, b) => b.alerts.length - a.alerts.length)[0];
-    if (topAlerted && !list.some((c) => c.item.ticker === topAlerted.ticker)) {
-      list.push({
-        title: "Most Active Signal Alerts",
-        item: topAlerted,
-        badge: "ALERT",
-        metric: `${topAlerted.alerts.length} sinyal terdeteksi`,
-      });
-    }
-
-    // Return at most 6 distinct opportunities that actually have API data
     return list.slice(0, 6);
   }, [enrichedStocks]);
 
-  // Candidate stock cards (max 6 initially)
   const candidateStocks = useMemo(() => {
     const sorted = [...enrichedStocks].sort((a, b) => b.confidence - a.confidence);
     return showAllCandidates ? sorted : sorted.slice(0, 6);
   }, [enrichedStocks, showAllCandidates]);
 
-  // Sector list for filter
   const sectorsList = useMemo(() => {
     return [
       "ALL",
@@ -418,10 +362,8 @@ export function IntelligenceDashboard({
     ];
   }, [enrichedStocks]);
 
-  // Filtered scanner rows
   const scannerRows = useMemo(() => {
     return enrichedStocks.filter((s) => {
-      // Tab filter
       if (selectedScannerTab !== "Semua") {
         if (selectedScannerTab === "Akumulasi" && s.phase !== "AKUMULASI")
           return false;
@@ -439,7 +381,6 @@ export function IntelligenceDashboard({
           return false;
       }
 
-      // Search query
       if (scannerSearch.trim()) {
         const q = scannerSearch.toLowerCase();
         const matchTicker = s.ticker.toLowerCase().includes(q);
@@ -447,7 +388,6 @@ export function IntelligenceDashboard({
         if (!matchTicker && !matchName) return false;
       }
 
-      // Sector filter
       if (scannerSector !== "ALL" && s.sector !== scannerSector) {
         return false;
       }
@@ -456,7 +396,6 @@ export function IntelligenceDashboard({
     });
   }, [enrichedStocks, selectedScannerTab, scannerSearch, scannerSector]);
 
-  // Sector Heatmap Data (Derived dynamically from actual analysed stocks)
   const sectorHeatmapData = useMemo(() => {
     const map = new Map<
       string,
@@ -510,7 +449,6 @@ export function IntelligenceDashboard({
       .sort((a, b) => b.count - a.count);
   }, [enrichedStocks]);
 
-  // Sector Rotation Quadrant (Calculated purely from real stock returns and relative volume)
   const sectorQuadrantData = useMemo(() => {
     const map = new Map<
       string,
@@ -555,7 +493,6 @@ export function IntelligenceDashboard({
         }
       }
 
-      // Mathematical mapping to [-0.85, 0.85] bounds
       const x = Math.max(-0.85, Math.min(0.85, Number((avgReturn * 10).toFixed(2))));
       const y = Math.max(-0.85, Math.min(0.85, Number(((avgRvol - 1) * 0.5).toFixed(2))));
 
@@ -568,7 +505,6 @@ export function IntelligenceDashboard({
     });
   }, [enrichedStocks]);
 
-  // Top broker flows preview
   const brokerFlowLeaders = useMemo(() => {
     const allBrokerMap = new Map<
       string,
@@ -617,32 +553,29 @@ export function IntelligenceDashboard({
     return { topBuyers, topSellers };
   }, [analyses]);
 
-  // Average coverage
   const avgCoverage = useMemo(() => {
     if (!analyses.length) return 0;
     const sum = analyses.reduce((acc, val) => acc + val.coverage, 0);
     return Math.round((sum / analyses.length) * 100);
   }, [analyses]);
 
-  // Dynamic last updated time from API
   const lastUpdatedDisplay = useMemo(() => {
     const raw = latestCalculation || universe.fetchedAt;
-    if (!raw) return "Terkini";
+    if (!raw) return "LIVE";
     try {
       const d = new Date(raw);
-      if (isNaN(d.getTime())) return "Terkini";
-      return d.toLocaleDateString("id-ID", {
-        day: "numeric",
+      if (isNaN(d.getTime())) return "LIVE";
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
         month: "short",
         hour: "2-digit",
         minute: "2-digit",
       });
     } catch {
-      return "Terkini";
+      return "LIVE";
     }
   }, [latestCalculation, universe.fetchedAt]);
 
-  // Real institutional aggregate flow
   const instTotalNetLot = useMemo(() => {
     return analyses.reduce((sum, a) => {
       const instGroup = a.groups?.find(
@@ -652,7 +585,6 @@ export function IntelligenceDashboard({
     }, 0);
   }, [analyses]);
 
-  // Average relative volume
   const avgRvol = useMemo(() => {
     if (!analyses.length) return 0;
     const sum = analyses.reduce(
@@ -663,84 +595,55 @@ export function IntelligenceDashboard({
   }, [analyses]);
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* 1. HERO HEADER */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 p-6 sm:p-7 shadow-xl">
-        {/* Subtle geometric background wave */}
-        <div className="absolute top-0 right-0 -bottom-10 w-96 pointer-events-none opacity-20 overflow-hidden">
-          <svg
-            viewBox="0 0 400 400"
-            className="w-full h-full text-blue-500"
-            fill="none"
-          >
-            <path
-              d="M0,100 C150,200 250,0 400,150 L400,400 L0,400 Z"
-              fill="currentColor"
-            />
-            <path
-              d="M0,180 C120,240 280,100 400,220"
-              stroke="#38BDF8"
-              strokeWidth="2"
-              fill="none"
-            />
-          </svg>
-        </div>
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+    <div className="space-y-2 font-mono pb-8">
+      {/* ── 1. BLOOMBERG TERMINAL HERO TELEMETRY ── */}
+      <section className="panel" style={{ borderLeft: "3px solid var(--amber)", marginBottom: 6 }}>
+        <div className="p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                <Radio size={12} className="animate-pulse text-blue-400" />
-                IDX Research Intelligence
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold text-amber bg-amber-950/40 border border-amber-800/60 px-2 py-0.5 rounded-xs tracking-wider">
+                [IDX MARKET INTELLIGENCE // ANALYTICS WORKSTATION]
               </span>
-              {/* Compact Historical Limitation Badge */}
               <MetricTooltip
-                label="Historical data"
-                explanation="Data IDX agregat harian melalui Sectors API dan TradingView snapshot. Waktu perhitungan batch periodik."
+                label="DATA PROVENANCE"
+                explanation="Verified Sectors API company universe + TradingView market candles. Periodic deterministic cycle models."
               />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Market Intelligence
+            <h1 className="text-base sm:text-lg font-bold text-white tracking-tight uppercase">
+              INSTITUTIONAL FLOW & MARKET CYCLE COCKPIT
             </h1>
-            <p className="text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
-              Lihat fase pasar, arus broker, dan perubahan kepemilikan dalam satu tampilan.
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Price cycle phase classification · Accumulation/Distribution inventory tracking · Shareholder relations.
             </p>
           </div>
 
-          {/* Right side compact status badges */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800 shadow-sm">
-              <Building2 size={16} className="text-blue-400" />
-              <div className="text-left">
-                <span className="block text-xs font-bold text-white tabular-nums">
-                  {universe.total || universe.stocks.length || 0}
-                </span>
-                <span className="block text-[10px] text-slate-400 -mt-0.5">
-                  Saham Terdaftar
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-xs flex items-center gap-2">
+              <Building2 size={13} className="text-cyan" />
+              <div>
+                <span className="text-[9px] text-slate-500 block">TOTAL UNIVERSE</span>
+                <span className="font-bold text-white tabular-nums">
+                  {universe.total || universe.stocks.length} TICKERS
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800 shadow-sm">
-              <Sparkles size={16} className="text-purple-400" />
-              <div className="text-left">
-                <span className="block text-xs font-bold text-white tabular-nums">
-                  {analyses.length}
-                </span>
-                <span className="block text-[10px] text-slate-400 -mt-0.5">
-                  Saham Dianalisis
+            <div className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-xs flex items-center gap-2">
+              <Activity size={13} className="text-amber" />
+              <div>
+                <span className="text-[9px] text-slate-500 block">ANALYSED COVERAGE</span>
+                <span className="font-bold text-amber tabular-nums">
+                  {analyses.length} ({avgCoverage}%)
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800 shadow-sm">
-              <Activity size={16} className="text-emerald-400" />
-              <div className="text-left">
-                <span className="block text-xs font-bold text-white tabular-nums">
+            <div className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-xs flex items-center gap-2">
+              <ShieldCheck size={13} className="text-green" />
+              <div>
+                <span className="text-[9px] text-slate-500 block">CALCULATION AS OF</span>
+                <span className="font-bold text-white tabular-nums">
                   {lastUpdatedDisplay}
-                </span>
-                <span className="block text-[10px] text-slate-400 -mt-0.5">
-                  Waktu Perhitungan
                 </span>
               </div>
             </div>
@@ -748,28 +651,18 @@ export function IntelligenceDashboard({
         </div>
       </section>
 
-      {/* 2. PHASE OVERVIEW SECTION */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left: Large Donut Chart */}
-        <div className="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h2 className="text-sm font-bold text-white tracking-tight">
-                Distribusi Fase Pasar
-              </h2>
-              <p className="text-xs text-slate-400">
-                Proporsi fase dari {analyses.length} emiten yang dianalisis
-              </p>
+      {/* ── 2. MODULAR PHASE DISTRIBUTION & TELEMETRY HUD ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+        {/* Left: Donut Chart Telemetry */}
+        <div className="panel lg:col-span-5 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <span>[MOD.01 // PHASE_DISTRIBUTION]</span>
             </div>
-            <Link
-              href="/scanner"
-              className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5 font-medium transition-colors"
-            >
-              Semua <ChevronRight size={14} />
-            </Link>
+            <span className="panel-tag">{analyses.length} ANALYSED</span>
           </div>
 
-          <div className="my-auto py-2">
+          <div className="p-3 my-auto">
             <PhaseDonutChart
               slices={donutSlices}
               total={analyses.length}
@@ -790,34 +683,30 @@ export function IntelligenceDashboard({
             />
           </div>
 
-          <div className="text-[11px] text-slate-500 pt-3 border-t border-slate-800/80 flex items-center justify-between">
-            <span>Klik segmen untuk memfilter tabel scanner di bawah</span>
-            <span className="text-slate-400 font-mono">100% Heuristik</span>
+          <div className="panel-footnote flex items-center justify-between">
+            <span>SELECT SEGMENT TO FILTER WORKSTATION SCANNER</span>
+            <span className="text-amber">100% HEURISTIC DATA</span>
           </div>
         </div>
 
-        {/* Right: 4 Compact Phase Cards */}
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        {/* Right: 4 Institutional HUD Phase Cards */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {DISPLAY_PHASES.map((phase) => {
             const count = phaseCounts[phase] || 0;
             const percentage = analyses.length
               ? Math.round((count / analyses.length) * 100)
               : 0;
             const phaseColor = PHASE_COLORS[phase];
-            const isSelected =
-              selectedScannerTab.toUpperCase() === phase;
-
-            // Representative sparkline from real leading stock in phase
+            const isSelected = selectedScannerTab.toUpperCase() === phase;
             const sampleStocks = enrichedStocks.filter((s) => s.phase === phase);
             const sparkPoints = sampleStocks[0]?.sparklineData ?? [];
 
-            // Real analytical metric derived directly from API stock data
-            let statText = "Tidak ada emiten aktif";
+            let statText = "NO ACTIVE CANDIDATES";
             if (sampleStocks.length > 0) {
               const avgConf =
                 sampleStocks.reduce((sum, s) => sum + s.confidence, 0) /
                 sampleStocks.length;
-              statText = `Rata-rata confidence: ${avgConf.toFixed(0)}%`;
+              statText = `AVG CONFIDENCE: ${avgConf.toFixed(0)}%`;
             }
 
             return (
@@ -832,32 +721,27 @@ export function IntelligenceDashboard({
                   };
                   setSelectedScannerTab(mapTab[phase] ?? "Semua");
                 }}
-                className={`group cursor-pointer rounded-xl border p-4.5 transition-all flex flex-col justify-between relative overflow-hidden ${
+                className={`hud-card cursor-pointer ${
                   isSelected
-                    ? "bg-slate-900 border-blue-500 shadow-md ring-1 ring-blue-500/30"
-                    : "bg-slate-900/60 border-slate-800 hover:bg-slate-800/80 hover:border-slate-700"
+                    ? "border-amber bg-slate-900"
+                    : "border-slate-800 hover:border-slate-700"
                 }`}
+                style={{ borderTop: `2px solid ${phaseColor}` }}
               >
-                {/* Top color bar */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1 transition-opacity opacity-75 group-hover:opacity-100"
-                  style={{ backgroundColor: phaseColor }}
-                />
-
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                <div className="hud-card-header">
+                  <div className="flex items-center gap-1.5">
                     <span
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2 h-2 rounded-xs"
                       style={{ backgroundColor: phaseColor }}
                     />
-                    <span className="font-bold text-xs uppercase tracking-wider text-slate-200">
+                    <span className="font-bold text-white tracking-wider">
                       {phase}
                     </span>
                   </div>
                   <span
-                    className="text-[11px] font-semibold px-2 py-0.5 rounded-md tabular-nums"
+                    className="text-[10px] font-bold px-1 py-0.2 rounded-xs tabular-nums"
                     style={{
-                      backgroundColor: `${phaseColor}15`,
+                      backgroundColor: `${phaseColor}20`,
                       color: phaseColor,
                     }}
                   >
@@ -865,199 +749,128 @@ export function IntelligenceDashboard({
                   </span>
                 </div>
 
-                {count > 0 ? (
-                  <>
-                    <div className="flex items-baseline justify-between my-2">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-extrabold text-white tabular-nums">
-                          {count}
-                        </span>
-                        <span className="text-xs text-slate-400">saham</span>
-                      </div>
-                      {sparkPoints.length > 0 && (
-                        <div className="shrink-0">
-                          <MiniSparkline
-                            data={sparkPoints}
-                            width={80}
-                            height={24}
-                            color={phaseColor}
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/60">
-                      <span className="truncate">{statText}</span>
-                      <ArrowRight
-                        size={12}
-                        className="text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0 ml-1"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-3 flex flex-col items-center justify-center text-center">
-                    <div className="w-8 h-8 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-500 mb-1.5">
-                      <ShieldCheck size={16} />
-                    </div>
-                    <span className="text-xs font-medium text-slate-400">
-                      Belum ada kandidat
-                    </span>
-                    <span className="text-[10px] text-slate-500 mt-0.5">
-                      Dalam sampel analisa saat ini
-                    </span>
+                <div className="flex items-baseline justify-between my-1">
+                  <div className="hud-card-value">
+                    <span>{count}</span>
+                    <small>TICKERS</small>
                   </div>
-                )}
+                  {sparkPoints.length > 0 && (
+                    <MiniSparkline
+                      data={sparkPoints}
+                      width={75}
+                      height={20}
+                      color={phaseColor}
+                    />
+                  )}
+                </div>
+
+                <div className="hud-card-footer justify-between text-[9.5px]">
+                  <span className="text-slate-400">{statText}</span>
+                  <ChevronRight size={12} className="text-slate-600" />
+                </div>
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* 3. MAIN INSIGHT SECTION (TWO COLUMNS) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left Column: Market Pulse */}
-        <div className="lg:col-span-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between space-y-5 shadow-sm">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <div className="flex items-center gap-2">
-                <Flame size={18} className="text-amber-400" />
-                <h2 className="text-sm font-bold text-white tracking-tight">
-                  Market Pulse
-                </h2>
-              </div>
-              <span className="text-[11px] text-slate-400 font-medium">
-                Sentimen Seketika
-              </span>
+      {/* ── 3. MARKET PULSE & TOP OPPORTUNITIES ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+        {/* Left: Market Pulse */}
+        <div className="panel lg:col-span-5 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <Flame size={13} className="text-amber" />
+              <span>[MOD.02 // MARKET_PULSE]</span>
             </div>
+            <span className="panel-tag">LIVE BREADTH</span>
+          </div>
 
-            {/* Dominant Phase Indicator */}
-            <div className="mt-4 p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-slate-400 font-medium">
-                  Fase Dominan Saat Ini:
-                </span>
+          <div className="p-3 space-y-3">
+            <div className="p-2 bg-slate-950 border border-slate-800 rounded-xs">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-slate-400">DOMINANT CYCLE STATE:</span>
                 <span
-                  className="text-xs font-bold px-2 py-0.5 rounded uppercase"
+                  className="font-bold text-[10px] px-1.5 py-0.2 rounded-xs uppercase"
                   style={{
                     backgroundColor: `${PHASE_COLORS[dominantPhase.phase]}20`,
                     color: PHASE_COLORS[dominantPhase.phase],
                   }}
                 >
-                  {dominantPhase.phase}
+                  {dominantPhase.phase} ({dominantPhase.percentage}%)
                 </span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-[11px] text-slate-300 leading-relaxed">
                 {dominantPhase.phase === "AKUMULASI"
-                  ? "Tekanan beli terpantau dominan dengan akumulasi teratur oleh broker institusional pada saham-saham utama."
+                  ? "Institutional buying pressure dominates across benchmark IDX large-caps."
                   : dominantPhase.phase === "POMPOM"
-                    ? "Perhatian pasar dan partisipasi ritel meningkat cepat pada saham yang dianalisis."
+                    ? "Retail participation and breakout volume accelerating across analyzed coverage."
                     : dominantPhase.phase === "MENGGORENG"
-                      ? "Aktivitas markup agresif dan perputaran volume cepat terdeteksi."
-                      : "Tekanan jual dan distribusi inventori mendominasi portofolio pantauan."}
+                      ? "High velocity markup and rapid turnover detected in mid-cap rotation."
+                      : "Distribution pressure and net inventory reduction active across key sectors."}
               </p>
             </div>
-          </div>
 
-          {/* Market Breadth */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-300">
-                Market Breadth
-              </span>
-              <span className="text-[11px] text-slate-400">
-                Berdasarkan harga terkini
-              </span>
-            </div>
             <BreadthBar
               advancers={marketBreadth.advancers}
               unchanged={marketBreadth.unchanged}
               decliners={marketBreadth.decliners}
             />
+
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+              <div className="p-2 bg-slate-950 border border-slate-800 rounded-xs">
+                <span className="text-[9.5px] text-slate-500 block">AVG RVOL</span>
+                <span className="text-sm font-bold text-white tabular-nums">
+                  {avgRvol.toFixed(2)}x
+                </span>
+              </div>
+              <div className="p-2 bg-slate-950 border border-slate-800 rounded-xs">
+                <span className="text-[9.5px] text-slate-500 block">INSTITUTIONAL PROXY</span>
+                <span
+                  className={`text-sm font-bold tabular-nums ${
+                    instTotalNetLot >= 0 ? "text-green" : "text-red"
+                  }`}
+                >
+                  {instTotalNetLot >= 0 ? `+${num(instTotalNetLot)}` : num(instTotalNetLot)} LOT
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Volume & Foreign Flow Quick Metrics */}
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800/80">
-            <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800/60">
-              <span className="text-[11px] text-slate-400 block mb-1">
-                Rata-rata RVOL
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-lg font-bold text-white tabular-nums">
-                  {avgRvol.toFixed(2)}
-                  x
-                </span>
-                <span
-                  className={`text-[10px] ${
-                    avgRvol >= 1.5
-                      ? "text-amber-400"
-                      : avgRvol >= 0.8
-                        ? "text-emerald-400"
-                        : "text-slate-400"
-                  }`}
-                >
-                  {avgRvol >= 1.5 ? "Tinggi" : avgRvol >= 0.8 ? "Normal" : "Rendah"}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800/60">
-              <span className="text-[11px] text-slate-400 block mb-1">
-                Arus Institusi Proxy
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span
-                  className={`text-lg font-bold tabular-nums ${
-                    instTotalNetLot > 0
-                      ? "text-blue-400"
-                      : instTotalNetLot < 0
-                        ? "text-rose-400"
-                        : "text-slate-400"
-                  }`}
-                >
-                  {instTotalNetLot > 0 ? `+${num(instTotalNetLot)}` : num(instTotalNetLot)}
-                </span>
-                <span className="text-[10px] text-slate-400">
-                  {instTotalNetLot >= 0 ? "lot akumulasi" : "lot distribusi"}
-                </span>
-              </div>
-            </div>
+          <div className="panel-footnote text-[9.5px]">
+            EQUAL-WEIGHT REALTIME AGGREGATE // COMPUTED DIRECTLY FROM OBSERVATIONS
           </div>
         </div>
 
-        {/* Right Column: Top Opportunities & Risks (6 compact cards) */}
-        <div className="lg:col-span-7 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3.5">
-            <div className="flex items-center gap-2">
-              <Zap size={18} className="text-blue-400" />
-              <h2 className="text-sm font-bold text-white tracking-tight">
-                Top Opportunities & Risks
-              </h2>
+        {/* Right: Screen Opportunities Matrix */}
+        <div className="panel lg:col-span-7 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <Zap size={13} className="text-cyan" />
+              <span>[MOD.03 // CANDIDATE_SIGNALS]</span>
             </div>
-            <span className="text-[11px] text-slate-400 font-medium">
-              Heuristik Confidence Tertinggi
-            </span>
+            <span className="panel-tag">CONFIDENCE RANKED</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {!topOpportunities.length ? (
-              <div className="col-span-full py-8 text-center text-xs text-slate-500">
-                Belum ada indikasi peluang atau risiko pada sampel emiten saat ini.
+              <div className="col-span-full py-6 text-center text-xs text-slate-500">
+                NO ACTIVE SIGNALS DETECTED IN ACQUIRED UNIVERSE.
               </div>
             ) : (
               topOpportunities.map((opp, idx) => {
                 const item = opp.item;
-
                 return (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/50 hover:bg-slate-950/90 transition-all flex flex-col justify-between relative group"
+                    className="p-2 bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors flex flex-col justify-between"
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-[11px] font-semibold text-slate-400 truncate max-w-[140px]">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[9.5px] text-slate-400 uppercase font-bold truncate max-w-[150px]">
                         {opp.title}
                       </span>
                       <span
-                        className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase"
+                        className="text-[9px] font-bold px-1 py-0.2 rounded-xs"
                         style={{
                           backgroundColor: `${PHASE_COLORS[opp.badge] ?? "#64748B"}20`,
                           color: PHASE_COLORS[opp.badge] ?? "#94A3B8",
@@ -1067,302 +880,149 @@ export function IntelligenceDashboard({
                       </span>
                     </div>
 
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <div>
-                          <Link
-                            href={`/stocks/${item.ticker}`}
-                            className="text-base font-bold text-white hover:text-blue-400 transition-colors flex items-center gap-1"
-                          >
-                            {item.ticker}
-                            <ArrowUpRight size={13} className="text-slate-500" />
-                          </Link>
-                          <span className="text-[11px] text-slate-400 truncate block max-w-[140px]">
-                            {item.companyName}
-                          </span>
-                        </div>
-                        <ConfidenceRing value={item.confidence} size={36} />
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-800/60 text-xs">
-                        <span className="text-slate-400 text-[11px] font-medium">
-                          {opp.metric}
-                        </span>
+                    <div className="flex items-center justify-between my-1">
+                      <div>
                         <Link
                           href={`/stocks/${item.ticker}`}
-                          className="text-[11px] text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+                          className="text-xs font-bold text-cyan hover:text-amber transition-colors flex items-center gap-1"
                         >
-                          View analysis →
+                          {item.ticker}
+                          <ArrowUpRight size={11} className="text-slate-500" />
                         </Link>
+                        <span className="text-[9.5px] text-slate-400 block truncate max-w-[140px]">
+                          {item.companyName}
+                        </span>
                       </div>
+                      <ConfidenceRing value={item.confidence} size={28} strokeWidth={2.5} />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px]">
+                      <span className="text-amber font-semibold">{opp.metric}</span>
+                      <Link
+                        href={`/stocks/${item.ticker}`}
+                        className="text-cyan hover:text-white font-bold"
+                      >
+                        ANALYZE →
+                      </Link>
                     </div>
                   </div>
                 );
               })
             )}
           </div>
+
+          <div className="panel-footnote flex items-center justify-between text-[9.5px]">
+            <span>AUTOMATED CYCLE DETECTOR</span>
+            <Link href="/scanner" className="text-cyan hover:text-amber">
+              FULL SCANNER [F2] →
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* 4. CANDIDATE STOCK CARDS */}
-      <section className="space-y-3.5">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-white tracking-tight">
-              Kandidat Saham Pantauan
-            </h2>
-            <p className="text-xs text-slate-400">
-              Emiten dengan indikasi fase terkuat berdasarkan price action dan arus broker
-            </p>
+      {/* ── 4. DENSE INSTITUTIONAL SCANNER TABLE ── */}
+      <section className="panel" style={{ marginBottom: 0 }}>
+        <div className="panel-heading">
+          <div className="panel-title">
+            <ScanLine size={13} className="text-amber" />
+            <span>[MOD.04 // WORKSTATION_SCANNER_TABLE]</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAllCandidates(!showAllCandidates)}
-            className="text-xs text-blue-400 hover:text-blue-300 font-semibold px-3 py-1.5 rounded-lg border border-blue-500/30 hover:bg-blue-500/10 transition-colors flex items-center gap-1"
-          >
-            {showAllCandidates ? "Tampilkan lebih sedikit" : "Lihat semua kandidat"}
-          </button>
+          <span className="panel-tag">{scannerRows.length} MATCHES</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {candidateStocks.map((stock) => {
-            const hasChange = stock.priceReturn !== null;
-            const isPos = hasChange && stock.priceReturn! > 0;
-            const isNeg = hasChange && stock.priceReturn! < 0;
-            const phaseColor = PHASE_COLORS[stock.phase] ?? "#64748B";
-
-            return (
-              <div
-                key={stock.ticker}
-                className="rounded-xl border border-slate-800 bg-slate-900/70 p-4.5 hover:border-slate-700 hover:bg-slate-900 transition-all flex flex-col justify-between shadow-xs group"
-              >
-                <div>
-                  {/* Card Header: Ticker, Name, Phase */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/stocks/${stock.ticker}`}
-                          className="text-lg font-black text-white hover:text-blue-400 transition-colors tracking-tight"
-                        >
-                          {stock.ticker}
-                        </Link>
-                        <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
-                          style={{
-                            backgroundColor: `${phaseColor}20`,
-                            color: phaseColor,
-                          }}
-                        >
-                          {stock.phase}
-                        </span>
-                      </div>
-                      <span className="text-xs text-slate-400 truncate block max-w-[190px] mt-0.5">
-                        {stock.companyName}
-                      </span>
-                    </div>
-                    <ConfidenceRing value={stock.confidence} size={40} />
-                  </div>
-
-                  {/* Price, Daily Return & Sparkline */}
-                  <div className="flex items-center justify-between my-3 p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
-                    <div>
-                      <div className="text-base font-bold text-white tabular-nums">
-                        {stock.currentPrice !== null
-                          ? `Rp ${num(stock.currentPrice)}`
-                          : "Rp —"}
-                      </div>
-                      {hasChange ? (
-                        <span
-                          className={`text-xs font-semibold tabular-nums flex items-center gap-0.5 ${
-                            isPos
-                              ? "text-emerald-400"
-                              : isNeg
-                                ? "text-rose-400"
-                                : "text-slate-400"
-                          }`}
-                        >
-                          {isPos ? "+" : ""}
-                          {(stock.priceReturn! * 100).toFixed(2)}%
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-500">—</span>
-                      )}
-                    </div>
-
-                    <div className="shrink-0">
-                      <MiniSparkline
-                        data={stock.sparklineData}
-                        width={90}
-                        height={26}
-                        positive={isPos}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Flow & RVOL Details */}
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                    <div className="p-2 rounded-lg bg-slate-950/40 border border-slate-800/40">
-                      <span className="text-[10px] text-slate-500 block">
-                        Relative Volume
-                      </span>
-                      <span className="font-semibold text-slate-200 tabular-nums">
-                        {num(stock.priceVolume?.relativeVolume, 2)}x
-                      </span>
-                    </div>
-                    <div className="p-2 rounded-lg bg-slate-950/40 border border-slate-800/40">
-                      <span className="text-[10px] text-slate-500 block">
-                        Top Net Buyer
-                      </span>
-                      <span className="font-semibold text-blue-400">
-                        {stock.topBuyer ? `${stock.topBuyer} (Net Buy)` : "—"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Action */}
-                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between">
-                  <span className="text-[11px] text-slate-500">
-                    Coverage: {(stock.coverage * 100).toFixed(0)}%
-                  </span>
-                  <Link
-                    href={`/stocks/${stock.ticker}`}
-                    className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-                  >
-                    Lihat detail <ChevronRight size={14} />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 5. MAIN SCANNER TABLE (STOCK PHASE SCANNER) */}
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-          <div>
-            <h2 className="text-base font-bold text-white tracking-tight">
-              Stock Phase Scanner
-            </h2>
-            <p className="text-xs text-slate-400">
-              Filter dan telusuri fase emiten berdasarkan deteksi volume dan akumulasi broker
-            </p>
+        {/* Filter Bar */}
+        <div className="filter-toolbar">
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {[
+              "Semua",
+              "Akumulasi",
+              "Pompom",
+              "Menggoreng",
+              "Distribusi",
+              "Transition",
+            ].map((tab) => {
+              const active = selectedScannerTab === tab;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setSelectedScannerTab(tab)}
+                  className={`terminal-btn ${active ? "active" : ""}`}
+                >
+                  {tab.toUpperCase()}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Scanner Controls: Search & Sector filter */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center h-8 px-2.5 bg-slate-950 border border-slate-800 focus-within:border-blue-500 rounded-lg w-48 transition-colors">
-              <Search
-                size={13}
-                className="text-slate-400 shrink-0 mr-2 pointer-events-none"
-              />
-              <input
-                type="text"
-                placeholder="Cari emiten..."
-                value={scannerSearch}
-                onChange={(e) => setScannerSearch(e.target.value)}
-                className="w-full bg-transparent border-0 text-xs text-slate-200 placeholder-slate-500 focus:outline-none p-0"
-              />
-            </div>
-
+          <div className="flex items-center gap-2 ml-auto">
+            <input
+              type="text"
+              placeholder="FILTER TICKER..."
+              value={scannerSearch}
+              onChange={(e) => setScannerSearch(e.target.value)}
+              className="w-36 text-xs"
+            />
             <select
               value={scannerSector}
               onChange={(e) => setScannerSector(e.target.value)}
-              className="h-8 px-2.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-blue-500"
+              className="text-xs"
             >
               {sectorsList.map((sec) => (
                 <option key={sec} value={sec}>
-                  {sec === "ALL" ? "Semua Sektor" : sec}
+                  {sec === "ALL" ? "ALL SECTORS" : sec.toUpperCase()}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Phase Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          {[
-            "Semua",
-            "Akumulasi",
-            "Pompom",
-            "Menggoreng",
-            "Distribusi",
-            "Transition",
-          ].map((tab) => {
-            const active = selectedScannerTab === tab;
-            return (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setSelectedScannerTab(tab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
-                  active
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                }`}
-              >
-                {tab}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Scanner Table */}
-        <div className="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 text-slate-400 border-b border-slate-800 uppercase tracking-wider font-semibold text-[10px]">
+        {/* Data Table */}
+        <div className="table-scroll">
+          <table>
+            <thead>
               <tr>
-                <th className="py-3 px-4">Symbol</th>
-                <th className="py-3 px-4">Harga Terakhir</th>
-                <th className="py-3 px-4">Perubahan</th>
-                <th className="py-3 px-4">Fase</th>
-                <th className="py-3 px-4">Confidence</th>
-                <th className="py-3 px-4">Coverage</th>
-                <th className="py-3 px-4">RVOL</th>
-                <th className="py-3 px-4">Top Buyer</th>
-                <th className="py-3 px-4">Top Seller</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
+                <th>TICKER</th>
+                <th>COMPANY</th>
+                <th>LAST (IDR)</th>
+                <th className="text-right">CHG %</th>
+                <th>PHASE</th>
+                <th>CONF</th>
+                <th>COVERAGE</th>
+                <th className="text-right">RVOL</th>
+                <th>TOP NET BUYER</th>
+                <th>TOP NET SELLER</th>
+                <th className="text-right">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
-              {scannerRows.map((row) => {
+            <tbody>
+              {scannerRows.slice(0, 50).map((row) => {
                 const phaseColor = PHASE_COLORS[row.phase] ?? "#64748B";
                 const hasChange = row.priceReturn !== null;
                 const isPos = hasChange && row.priceReturn! > 0;
                 const isNeg = hasChange && row.priceReturn! < 0;
 
                 return (
-                  <tr
-                    key={row.ticker}
-                    className="hover:bg-slate-900/80 transition-colors"
-                  >
-                    <td className="py-3 px-4">
+                  <tr key={row.ticker}>
+                    <td className="ticker-cell">
                       <Link
                         href={`/stocks/${row.ticker}`}
-                        className="font-bold text-white hover:text-blue-400 transition-colors"
+                        className="text-cyan hover:text-amber font-bold"
                       >
                         {row.ticker}
                       </Link>
-                      <span className="text-[11px] text-slate-400 block truncate max-w-[130px]">
-                        {row.companyName}
-                      </span>
                     </td>
-                    <td className="py-3 px-4 tabular-nums text-slate-200">
-                      {row.currentPrice !== null
-                        ? `Rp ${num(row.currentPrice)}`
-                        : "—"}
+                    <td className="text-slate-300 truncate max-w-[160px]">
+                      {row.companyName}
                     </td>
-                    <td className="py-3 px-4 tabular-nums">
+                    <td className="tabular-nums font-semibold">
+                      {row.currentPrice !== null ? num(row.currentPrice) : "—"}
+                    </td>
+                    <td className="text-right tabular-nums">
                       {hasChange ? (
                         <span
-                          className={`font-semibold ${
-                            isPos
-                              ? "text-emerald-400"
-                              : isNeg
-                                ? "text-rose-400"
-                                : "text-slate-400"
+                          className={`font-bold ${
+                            isPos ? "text-green" : isNeg ? "text-red" : "text-slate-400"
                           }`}
                         >
                           {isPos ? "+" : ""}
@@ -1372,51 +1032,52 @@ export function IntelligenceDashboard({
                         <span className="text-slate-500">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-4">
+                    <td>
                       <span
-                        className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                        className="phase-badge"
                         style={{
-                          backgroundColor: `${phaseColor}20`,
+                          backgroundColor: `${phaseColor}15`,
                           color: phaseColor,
+                          border: `1px solid ${phaseColor}40`,
                         }}
                       >
                         {row.phase}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                    <td>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-12 h-1.5 bg-slate-900 border border-slate-800 rounded-xs overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all"
+                            className="h-full"
                             style={{
                               width: `${row.confidence}%`,
                               backgroundColor: phaseColor,
                             }}
                           />
                         </div>
-                        <span className="text-slate-300 font-mono text-[11px]">
+                        <span className="text-[10px] text-slate-300 tabular-nums">
                           {row.confidence}%
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 tabular-nums text-slate-400">
+                    <td className="tabular-nums text-slate-400">
                       {(row.coverage * 100).toFixed(0)}%
                     </td>
-                    <td className="py-3 px-4 tabular-nums font-semibold text-slate-200">
+                    <td className="text-right tabular-nums font-semibold text-slate-200">
                       {num(row.priceVolume?.relativeVolume, 2)}x
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-blue-400">
+                    <td className="font-bold text-cyan">
                       {row.topBuyer ?? "—"}
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-rose-400">
+                    <td className="font-bold text-red">
                       {row.topSeller ?? "—"}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="text-right">
                       <Link
                         href={`/stocks/${row.ticker}`}
-                        className="text-xs text-blue-400 hover:text-blue-300 font-semibold px-2.5 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-colors inline-block"
+                        className="terminal-btn text-[9px] py-0.5 px-1.5 text-cyan hover:text-white"
                       >
-                        Detail
+                        ANALYSIS →
                       </Link>
                     </td>
                   </tr>
@@ -1424,374 +1085,248 @@ export function IntelligenceDashboard({
               })}
               {!scannerRows.length && (
                 <tr>
-                  <td
-                    colSpan={10}
-                    className="py-8 text-center text-slate-500 font-medium"
-                  >
-                    Tidak ada saham yang sesuai dengan filter pencarian.
+                  <td colSpan={11} className="py-6 text-center text-slate-500">
+                    NO SECURITIES MATCHING SPECIFIED CRITERIA.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </section>
 
-      {/* 6. DATA QUALITY SECTION */}
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white tracking-tight">
-                  Data Coverage & Reliability
-                </h2>
-                <span className="text-xs font-extrabold text-emerald-400 tabular-nums bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  {avgCoverage}%
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Integritas data dihitung dari ketersediaan agregat harga, volume, dan transaksi broker
-              </p>
-            </div>
-          </div>
-
+        <div className="panel-footnote flex items-center justify-between">
+          <span>SHOWING {Math.min(50, scannerRows.length)} OF {scannerRows.length} STOCKS</span>
           <button
-            type="button"
             onClick={() => setDataQualityDrawerOpen(true)}
-            className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 hover:bg-slate-800 transition-colors shrink-0"
+            className="text-cyan hover:text-amber font-semibold"
           >
-            Lihat detail batasan data
+            DATA QUALITY SPECIFICATION →
           </button>
         </div>
-
-        {/* Small Status Chips */}
-        <div className="flex flex-wrap items-center gap-2 pt-4 mt-3 border-t border-slate-800/60">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Price-Volume: Available
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Broker Summary: Available
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            Frequency: Daily aggregate only
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-            Tick Data: Unavailable
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-            Bid-Offer Events: Unavailable
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800/80 text-slate-400 border border-slate-700/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-            Narrative Data: Unavailable
-          </span>
-        </div>
       </section>
 
-      {/* 7 & 8. MARKET VISUALIZATIONS & INSTITUTIONAL FLOW */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Sector Heatmap & Activity */}
-        <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3.5 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-            <div className="flex items-center gap-2">
-              <PieChart size={18} className="text-purple-400" />
-              <h2 className="text-sm font-bold text-white tracking-tight">
-                Sector Activity Heatmap
-              </h2>
+      {/* ── 5. SECTOR ROTATION & INSTITUTIONAL BROKER FLOW ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+        {/* Sector Activity */}
+        <div className="panel lg:col-span-6 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <PieChart size={13} className="text-purple" />
+              <span>[MOD.05 // SECTOR_ROTATION_HEATMAP]</span>
             </div>
-            <Link
-              href="/sectors"
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-0.5"
-            >
-              Rotasi Sektor <ChevronRight size={14} />
+            <Link href="/sectors" className="panel-tag text-cyan">
+              EXPAND [F6] →
             </Link>
           </div>
 
-          <SectorHeatmap
-            sectors={sectorHeatmapData}
-            onSelectSector={(sec) => {
-              setScannerSector(sec);
-              const el = document.querySelector("table");
-              el?.scrollIntoView({ behavior: "smooth" });
-            }}
-          />
+          <div className="p-3">
+            <SectorHeatmap
+              sectors={sectorHeatmapData}
+              onSelectSector={(sec) => {
+                setScannerSector(sec);
+                const el = document.querySelector("table");
+                el?.scrollIntoView({ behavior: "smooth" });
+              }}
+            />
+          </div>
+
+          <div className="panel-footnote">
+            SECTOR PERFORMANCE & EQUAL-WEIGHT MOMENTUM
+          </div>
         </div>
 
-        {/* Institutional Flow & Broker Activity Preview */}
-        <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3.5 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <div className="flex items-center gap-2">
-                <TrendingUp size={18} className="text-blue-400" />
-                <h2 className="text-sm font-bold text-white tracking-tight">
-                  Institutional Flow & Broker Activity
-                </h2>
-              </div>
-              <Link
-                href="/brokers"
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-0.5"
-              >
-                Broker Stalker <ChevronRight size={14} />
-              </Link>
+        {/* Institutional Broker Leaderboard */}
+        <div className="panel lg:col-span-6 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <TrendingUp size={13} className="text-cyan" />
+              <span>[MOD.06 // INSTITUTIONAL_BROKER_FLOW]</span>
             </div>
+            <Link href="/brokers" className="panel-tag text-cyan">
+              BROKER STALKER [F4] →
+            </Link>
+          </div>
 
-            {/* Top Net Buyers & Sellers Ranked Bars */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3.5">
-              {/* Net Buyers */}
-              <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80 space-y-2">
-                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
-                  Top Net Buyers
-                </span>
-                {brokerFlowLeaders.topBuyers.map((b) => (
-                  <Link
-                    key={b.brokerCode}
-                    href={`/brokers?broker=${b.brokerCode}`}
-                    className="flex items-center justify-between text-xs py-1 px-1.5 rounded hover:bg-slate-800/60 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-white">
-                        {b.brokerCode}
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {b.stocks.join(", ")}
-                      </span>
-                    </div>
-                    <span className="font-semibold text-emerald-400 tabular-nums">
-                      +{num(b.netLot)} lot
-                    </span>
-                  </Link>
-                ))}
-                {!brokerFlowLeaders.topBuyers.length && (
-                  <span className="text-xs text-slate-500">
-                    Tidak ada data net buy
+          <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="p-2 bg-slate-950 border border-slate-800 rounded-xs space-y-1.5">
+              <span className="text-[10px] font-bold text-green uppercase tracking-wider block border-b border-slate-900 pb-1">
+                TOP NET ACCUMULATORS
+              </span>
+              {brokerFlowLeaders.topBuyers.map((b) => (
+                <Link
+                  key={b.brokerCode}
+                  href={`/brokers?broker=${b.brokerCode}`}
+                  className="flex items-center justify-between text-xs py-0.5 px-1 rounded-xs hover:bg-slate-900 transition-colors"
+                >
+                  <span className="font-bold text-white">{b.brokerCode}</span>
+                  <span className="font-bold text-green tabular-nums">
+                    +{num(b.netLot)} LOT
                   </span>
-                )}
-              </div>
+                </Link>
+              ))}
+              {!brokerFlowLeaders.topBuyers.length && (
+                <span className="text-xs text-slate-500">NO DATA</span>
+              )}
+            </div>
 
-              {/* Net Sellers */}
-              <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800/80 space-y-2">
-                <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider block">
-                  Top Net Sellers
-                </span>
-                {brokerFlowLeaders.topSellers.map((b) => (
-                  <Link
-                    key={b.brokerCode}
-                    href={`/brokers?broker=${b.brokerCode}`}
-                    className="flex items-center justify-between text-xs py-1 px-1.5 rounded hover:bg-slate-800/60 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-white">
-                        {b.brokerCode}
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {b.stocks.join(", ")}
-                      </span>
-                    </div>
-                    <span className="font-semibold text-rose-400 tabular-nums">
-                      {num(b.netLot)} lot
-                    </span>
-                  </Link>
-                ))}
-                {!brokerFlowLeaders.topSellers.length && (
-                  <span className="text-xs text-slate-500">
-                    Tidak ada data net sell
+            <div className="p-2 bg-slate-950 border border-slate-800 rounded-xs space-y-1.5">
+              <span className="text-[10px] font-bold text-red uppercase tracking-wider block border-b border-slate-900 pb-1">
+                TOP NET DISTRIBUTORS
+              </span>
+              {brokerFlowLeaders.topSellers.map((b) => (
+                <Link
+                  key={b.brokerCode}
+                  href={`/brokers?broker=${b.brokerCode}`}
+                  className="flex items-center justify-between text-xs py-0.5 px-1 rounded-xs hover:bg-slate-900 transition-colors"
+                >
+                  <span className="font-bold text-white">{b.brokerCode}</span>
+                  <span className="font-bold text-red tabular-nums">
+                    {num(b.netLot)} LOT
                   </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Arus broker berbasis heuristik inventori akumulatif</span>
-            <Link
-              href="/institutional-flow"
-              className="text-blue-400 hover:text-blue-300 font-medium"
-            >
-              Institutional Flow Map →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 9 & 10. SECTOR ROTATION QUADRANT & LIVE ALERTS */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Sector Rotation Quadrant */}
-        <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3.5 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-            <div>
-              <h2 className="text-sm font-bold text-white tracking-tight">
-                Sector Rotation Quadrant
-              </h2>
-              <p className="text-xs text-slate-400">
-                Momentum harga vs Arus volume relatif antar sektor
-              </p>
-            </div>
-            <Link
-              href="/sectors"
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold"
-            >
-              Detail Sektor →
-            </Link>
-          </div>
-
-          <SectorQuadrantChart
-            sectors={sectorQuadrantData}
-            onSelectSector={(sec) => {
-              setScannerSector(sec);
-            }}
-          />
-        </div>
-
-        {/* Live Alerts Panel */}
-        <div className="lg:col-span-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3.5 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <div className="flex items-center gap-2">
-                <AlertCircle size={18} className="text-amber-400" />
-                <h2 className="text-sm font-bold text-white tracking-tight">
-                  Live Alerts
-                </h2>
-              </div>
-              <Link
-                href="/alerts"
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold"
-              >
-                Semua Alerts ({allAlerts.length}) →
-              </Link>
-            </div>
-
-            <div className="space-y-2 mt-3 overflow-y-auto max-h-[250px] pr-1">
-              {allAlerts.slice(0, 6).map((al) => {
-                const isCrit = al.severity === "CRITICAL";
-                const isHigh = al.severity === "HIGH";
-
-                return (
-                  <div
-                    key={al.id}
-                    onClick={() => setActiveAlert(al)}
-                    className="p-2.5 rounded-xl border border-slate-800/80 bg-slate-950/50 hover:bg-slate-950 hover:border-slate-700 transition-all cursor-pointer flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`w-2 h-2 rounded-full shrink-0 ${
-                          isCrit
-                            ? "bg-rose-500 animate-pulse"
-                            : isHigh
-                              ? "bg-amber-400"
-                              : "bg-blue-400"
-                        }`}
-                      />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-white text-xs">
-                            {al.ticker}
-                          </span>
-                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                            {readable(al.type)}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-slate-500 block truncate max-w-[240px]">
-                          {al.evidence[0] ?? "Indikasi anomali volume & broker"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-slate-400">
-                        {new Date(al.timestamp * 1000)
-                          .toISOString()
-                          .slice(5, 10)}
-                      </span>
-                      <button
-                        type="button"
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-colors"
-                      >
-                        Bukti
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-              {!allAlerts.length && (
-                <div className="py-8 text-center text-xs text-slate-500">
-                  Tidak ada alert aktif pada sesi analisa saat ini.
-                </div>
+                </Link>
+              ))}
+              {!brokerFlowLeaders.topSellers.length && (
+                <span className="text-xs text-slate-500">NO DATA</span>
               )}
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-800/60 text-[11px] text-slate-500 flex items-center justify-between">
-            <span>Klik alert untuk memeriksa bukti analitis di panel samping</span>
-            <Link
-              href="/methodology"
-              className="text-slate-400 hover:text-white"
-            >
-              Metodologi Aturan →
+          <div className="panel-footnote flex items-center justify-between">
+            <span>INVENTORY DELTA BASED ON OBSERVED LOTS</span>
+            <Link href="/institutional-flow" className="text-cyan hover:text-amber">
+              INSTITUTIONAL FLOW MAP →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* DETAIL DRAWER FOR ALERT EVIDENCE */}
+      {/* ── 6. SECTOR ROTATION QUADRANT & LIVE ALERTS FEED ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-2">
+        <div className="panel lg:col-span-6 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <span>[MOD.07 // SECTOR_ROTATION_QUADRANT]</span>
+            </div>
+            <Link href="/sectors" className="panel-tag text-cyan">
+              DETAILS →
+            </Link>
+          </div>
+
+          <div className="p-3">
+            <SectorQuadrantChart
+              sectors={sectorQuadrantData}
+              onSelectSector={(sec) => setScannerSector(sec)}
+            />
+          </div>
+
+          <div className="panel-footnote">
+            X-AXIS: PRICE MOMENTUM // Y-AXIS: RELATIVE VOLUME
+          </div>
+        </div>
+
+        <div className="panel lg:col-span-6 flex flex-col justify-between" style={{ marginBottom: 0 }}>
+          <div className="panel-heading">
+            <div className="panel-title">
+              <AlertCircle size={13} className="text-amber" />
+              <span>[MOD.08 // LIVE_SIGNAL_ALERTS]</span>
+            </div>
+            <Link href="/alerts" className="panel-tag text-amber">
+              ALL ({allAlerts.length}) [F7] →
+            </Link>
+          </div>
+
+          <div className="p-2 space-y-1 max-h-[260px] overflow-y-auto">
+            {allAlerts.slice(0, 6).map((al) => {
+              const isCrit = al.severity === "CRITICAL";
+              return (
+                <div
+                  key={al.id}
+                  onClick={() => setActiveAlert(al)}
+                  className="p-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-xs ${
+                        isCrit ? "bg-red" : "bg-amber"
+                      }`}
+                    />
+                    <strong className="text-cyan font-bold w-12">{al.ticker}</strong>
+                    <span className="text-slate-300 text-[11px] truncate max-w-[200px]">
+                      {readable(al.type)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 text-[10px]">
+                      {new Date(al.timestamp * 1000).toISOString().slice(5, 10)}
+                    </span>
+                    <button className="terminal-btn text-[9px] py-0.2 px-1 text-amber">
+                      EVIDENCE
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            {!allAlerts.length && (
+              <div className="py-6 text-center text-xs text-slate-500">
+                NO ACTIVE ALERTS RECORDED.
+              </div>
+            )}
+          </div>
+
+          <div className="panel-footnote flex items-center justify-between">
+            <span>TRANSPARENT HEURISTIC AUDIT LOG</span>
+            <Link href="/methodology" className="text-slate-400 hover:text-white">
+              RULE METHODOLOGY →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DETAIL DRAWER FOR ALERT EVIDENCE ── */}
       <DetailDrawer
         isOpen={Boolean(activeAlert)}
         onClose={() => setActiveAlert(null)}
         title={
           activeAlert
-            ? `${activeAlert.ticker} · ${readable(activeAlert.type)}`
+            ? `${activeAlert.ticker} // ${readable(activeAlert.type)}`
             : ""
         }
-        subtitle="Analisis Bukti Sinyal & Batasan Model"
+        subtitle="HEURISTIC SIGNAL EVIDENCE & AUDIT LOG"
       >
         {activeAlert && (
-          <div className="space-y-4 text-xs">
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div className="space-y-3 text-xs font-mono">
+            <div className="p-3 bg-slate-950 border border-slate-800 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Tingkat Keparahan:</span>
+                <span className="text-slate-400">SEVERITY LEVEL:</span>
                 <span
-                  className={`font-bold uppercase px-2 py-0.5 rounded text-[10px] ${
+                  className={`font-bold uppercase px-1.5 py-0.2 rounded-xs text-[10px] ${
                     activeAlert.severity === "CRITICAL"
-                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                      : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                      ? "bg-red text-black"
+                      : "bg-amber text-black"
                   }`}
                 >
                   {activeAlert.severity}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Fase Saat Kejadian:</span>
+                <span className="text-slate-400">OCCURRED PHASE:</span>
                 <span className="font-bold text-white uppercase">
                   {readable(activeAlert.phase)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Confidence Model:</span>
-                <span className="font-bold text-blue-400">
+                <span className="text-slate-400">MODEL CONFIDENCE:</span>
+                <span className="font-bold text-cyan">
                   {activeAlert.confidence}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Nilai Terukur vs Baseline:</span>
-                <span className="font-mono text-slate-200">
-                  {num(activeAlert.actualValue)} / {num(activeAlert.baseline)}
                 </span>
               </div>
             </div>
 
             <div>
-              <h3 className="font-bold text-slate-200 text-xs mb-2">
-                Mengapa Alert Ini Muncul? (Bukti Heuristik)
+              <h3 className="font-bold text-amber text-xs mb-1.5">
+                [HEURISTIC EVIDENCE LOG]
               </h3>
-              <ul className="space-y-1.5 list-disc pl-4 text-slate-300">
+              <ul className="space-y-1 list-disc pl-4 text-slate-300 text-[11px]">
                 {activeAlert.evidence.map((ev, i) => (
                   <li key={i}>{ev}</li>
                 ))}
@@ -1800,10 +1335,10 @@ export function IntelligenceDashboard({
 
             {activeAlert.warnings.length > 0 && (
               <div>
-                <h3 className="font-bold text-amber-400 text-xs mb-2">
-                  Batasan & Disclaimer
+                <h3 className="font-bold text-red text-xs mb-1.5">
+                  [LIMITATIONS & INTERPRETATION]
                 </h3>
-                <ul className="space-y-1.5 list-disc pl-4 text-slate-400">
+                <ul className="space-y-1 list-disc pl-4 text-slate-400 text-[11px]">
                   {activeAlert.warnings.map((w, i) => (
                     <li key={i}>{w}</li>
                   ))}
@@ -1811,85 +1346,54 @@ export function IntelligenceDashboard({
               </div>
             )}
 
-            <div className="pt-4 border-t border-slate-800 flex items-center gap-2">
+            <div className="pt-3 border-t border-slate-800 flex items-center gap-2">
               <Link
                 href={`/stocks/${activeAlert.ticker}`}
-                className="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-center transition-colors"
+                className="button primary flex-1 py-1 text-center"
               >
-                Buka Analisis Saham
-              </Link>
-              <Link
-                href={`/stocks/${activeAlert.ticker}#inventory`}
-                className="py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition-colors"
-              >
-                Inventori Broker
+                OPEN STOCK ANALYSIS [F3]
               </Link>
             </div>
           </div>
         )}
       </DetailDrawer>
 
-      {/* DETAIL DRAWER FOR DATA QUALITY */}
+      {/* ── DETAIL DRAWER FOR DATA QUALITY AUDIT ── */}
       <DetailDrawer
         isOpen={dataQualityDrawerOpen}
         onClose={() => setDataQualityDrawerOpen(false)}
-        title="Audit Cakupan & Keterbatasan Data"
-        subtitle="Spesifikasi transparansi data Sectors API & TradingView"
+        title="DATA COVERAGE & INTEGRITY SPECIFICATION"
+        subtitle="Institutional data provenance audit"
       >
-        <div className="space-y-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <span className="text-slate-400 block">Status Integrasi:</span>
-            <p className="text-slate-200 leading-relaxed">
-              Platform menggunakan data resmi agregat harian dari Sectors API v2
-              dan candle harga dari TradingView snapshot.
+        <div className="space-y-3 text-xs font-mono">
+          <div className="p-3 bg-slate-950 border border-slate-800">
+            <span className="text-slate-400 block mb-1">INTEGRATION ARCHITECTURE:</span>
+            <p className="text-slate-200 leading-relaxed text-[11px]">
+              Daily aggregate transactions sourced via official Sectors API v2 with OHLCV daily bars from TradingView snapshots.
             </p>
           </div>
 
           <div>
-            <h3 className="font-bold text-slate-200 text-xs mb-2">
-              Data Yang Tersedia:
+            <h3 className="font-bold text-green text-xs mb-1">
+              [AVAILABLE OBSERVABLE FEEDS]
             </h3>
-            <ul className="space-y-1.5 list-disc pl-4 text-emerald-400">
-              <li>
-                <strong className="text-slate-200">Price & Volume:</strong> Daily
-                OHLCV hingga 500 bar ke belakang.
-              </li>
-              <li>
-                <strong className="text-slate-200">Broker Summary:</strong> Total lot
-                beli dan jual per kode broker pada sesi harian yang telah ditutup.
-              </li>
-              <li>
-                <strong className="text-slate-200">Company Metadata:</strong> Sektor,
-                subsektor, dan persentase free-float emiten.
-              </li>
+            <ul className="space-y-1 list-disc pl-4 text-slate-300 text-[11px]">
+              <li>Daily OHLCV bars with relative volume anomalies.</li>
+              <li>Broker summary gross buy/sell lot transactions.</li>
+              <li>Sectors verified company metadata & free-float coverage.</li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-bold text-slate-400 text-xs mb-2">
-              Batasan Yang Tidak Tersedia (Sengaja Ditampilkan Eksplisit):
+            <h3 className="font-bold text-red text-xs mb-1">
+              [UNAVAILABLE EXPLICIT LIMITATIONS]
             </h3>
-            <ul className="space-y-1.5 list-disc pl-4 text-slate-400">
-              <li>
-                <strong className="text-slate-300">Tick Data:</strong> Eksekusi
-                per milidetik tidak disediakan bursa IDX untuk feed publik.
-              </li>
-              <li>
-                <strong className="text-slate-300">Bid-Offer Events:</strong> Antrian
-                orderbook level 2/3 tidak tersedia dalam mode batch.
-              </li>
-              <li>
-                <strong className="text-slate-300">Opening Inventory:</strong> Saldo
-                awal kepemilikan broker sebelum periode analisa adalah nol atau
-                tidak diketahui.
-              </li>
+            <ul className="space-y-1 list-disc pl-4 text-slate-400 text-[11px]">
+              <li>Millisecond tick-by-tick order execution is not provided by public IDX feeds.</li>
+              <li>Orderbook level 2/3 depth not captured in batch daily mode.</li>
+              <li>Opening inventory prior to period start is unknown.</li>
             </ul>
           </div>
-
-          <p className="text-[11px] text-slate-500 italic pt-2">
-            Prinsip FlowPhase: Nilai 0 berarti terukur nol. Nilai tidak tersedia
-            ditampilkan secara eksplisit sebagai data unavailable, bukan nol palsu.
-          </p>
         </div>
       </DetailDrawer>
     </div>

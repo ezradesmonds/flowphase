@@ -33,25 +33,26 @@ function setup(element: HTMLDivElement, theme: ChartTheme) {
     layout: {
       background: {
         type: ColorType.Solid,
-        color: light ? "#ffffff" : "#0c1922",
+        color: light ? "#ffffff" : "#04070b",
       },
-      textColor: light ? "#5d6877" : "#91a9bc",
-      fontFamily: '"IBM Plex Sans", Arial, sans-serif',
-      attributionLogo: true,
+      textColor: light ? "#5d6877" : "#7c8ba1",
+      fontFamily: '"IBM Plex Mono", monospace, sans-serif',
+      attributionLogo: false,
     },
     grid: {
-      vertLines: { color: light ? "#e6e9ee" : "#172c38" },
-      horzLines: { color: light ? "#e6e9ee" : "#172c38" },
+      vertLines: { color: light ? "#e6e9ee" : "#121a24" },
+      horzLines: { color: light ? "#e6e9ee" : "#121a24" },
     },
-    timeScale: { timeVisible: true },
+    timeScale: { timeVisible: true, borderColor: light ? "#e6e9ee" : "#1a2636" },
+    rightPriceScale: { borderColor: light ? "#e6e9ee" : "#1a2636" },
     localization: { locale: "en-GB" },
   });
   const price = chart.addSeries(CandlestickSeries, {
-    upColor: "#65d3a7",
-    downColor: "#f08a91",
+    upColor: "#00e676",
+    downColor: "#ff3355",
     borderVisible: false,
-    wickUpColor: "#65d3a7",
-    wickDownColor: "#f08a91",
+    wickUpColor: "#00e676",
+    wickDownColor: "#ff3355",
   });
   price.priceScale().applyOptions({ scaleMargins: { top: 0.08, bottom: 0.3 } });
   const volume = chart.addSeries(HistogramSeries, {
@@ -110,7 +111,7 @@ function MarketCanvas({
       candles.map((c) => ({
         time: c.time as UTCTimestamp,
         value: c.volume,
-        color: c.close >= c.open ? "#284d46" : "#54313e",
+        color: c.close >= c.open ? "rgba(0, 230, 118, 0.35)" : "rgba(255, 51, 85, 0.35)",
       })),
     );
     if ((!fitted.current || autoFit) && candles.length) {

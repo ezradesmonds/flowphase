@@ -2,8 +2,8 @@
 
 import { SourceStatus } from "./source-status";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
 import { StockSearch } from "./stock-search";
 import {
   LayoutDashboard,
@@ -17,45 +17,28 @@ import {
   ShieldCheck,
   Sun,
   Moon,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Menu,
   X,
   ArrowUpRight,
+  Terminal,
+  Activity,
+  Clock,
+  Radio,
   Settings,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/", label: "Overview", icon: LayoutDashboard, shortcut: "F1" },
-  { href: "/scanner", label: "Market Scanner", icon: ScanLine, shortcut: "F2" },
-  {
-    href: "/stocks",
-    label: "Stock Analysis",
-    icon: TrendingUp,
-    shortcut: "F3",
-  },
-  { href: "/brokers", label: "Broker Stalker", icon: Users, shortcut: "F4" },
-  {
-    href: "/ownership",
-    label: "Ownership Graph",
-    icon: Network,
-    shortcut: "F5",
-  },
-  {
-    href: "/sectors",
-    label: "Sector Rotation",
-    icon: PieChart,
-    shortcut: "F6",
-  },
-  { href: "/alerts", label: "Alerts", icon: Bell, shortcut: "F7" },
-  { href: "/watchlist", label: "Watchlist", icon: Star, shortcut: "F8" },
-  {
-    href: "/data-status",
-    label: "Data Status",
-    icon: ShieldCheck,
-    shortcut: "F9",
-  },
+export const navItems = [
+  { href: "/", label: "OVERVIEW", icon: LayoutDashboard, shortcut: "F1" },
+  { href: "/scanner", label: "SCANNER", icon: ScanLine, shortcut: "F2" },
+  { href: "/stocks", label: "STOCKS", icon: TrendingUp, shortcut: "F3" },
+  { href: "/brokers", label: "BROKER FLOW", icon: Users, shortcut: "F4" },
+  { href: "/ownership", label: "OWNERSHIP", icon: Network, shortcut: "F5" },
+  { href: "/sectors", label: "SECTORS", icon: PieChart, shortcut: "F6" },
+  { href: "/alerts", label: "ALERTS", icon: Bell, shortcut: "F7" },
+  { href: "/watchlist", label: "WATCHLIST", icon: Star, shortcut: "F8" },
+  { href: "/data-status", label: "DATA STATUS", icon: ShieldCheck, shortcut: "F9" },
 ];
 
 function getIdxMarketStatus() {
@@ -63,7 +46,7 @@ function getIdxMarketStatus() {
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
   const wib = new Date(utc + 7 * 3600000);
   const day = wib.getDay();
-  if (day === 0 || day === 6) return { isOpen: false, label: "IDX Closed" };
+  if (day === 0 || day === 6) return { isOpen: false, label: "IDX CLOSED", session: "WEEKEND" };
   const hour = wib.getHours();
   const minute = wib.getMinutes();
   const timeNum = hour * 100 + minute;
@@ -71,9 +54,10 @@ function getIdxMarketStatus() {
   const session1End = isFriday ? 1130 : 1200;
   const inSession1 = timeNum >= 900 && timeNum < session1End;
   const inSession2 = timeNum >= 1330 && timeNum < 1600;
-  return inSession1 || inSession2
-    ? { isOpen: true, label: "IDX Open" }
-    : { isOpen: false, label: "IDX Closed" };
+  if (inSession1) return { isOpen: true, label: "IDX OPEN", session: "SESSION 1" };
+  if (inSession2) return { isOpen: true, label: "IDX OPEN", session: "SESSION 2" };
+  if (timeNum >= session1End && timeNum < 1330) return { isOpen: false, label: "IDX BREAK", session: "INTERMISSION" };
+  return { isOpen: false, label: "IDX CLOSED", session: "AFTER HOURS" };
 }
 
 export function Shell({
@@ -84,196 +68,251 @@ export function Shell({
   demo?: boolean;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [marketStatus, setMarketStatus] = useState({
-    isOpen: false,
-    label: "IDX Closed",
-  });
+  const [marketStatus, setMarketStatus] = useState(getIdxMarketStatus());
+  const [wibTime, setWibTime] = useState("");
 
+  // Live Market Clock & Market Status
   useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      setMounted(true);
+    setMounted(true);
+    const updateTime = () => {
+      const now = new Date();
+      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      const wib = new Date(utc + 7 * 3600000);
+      setWibTime(
+        wib.toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }),
+      );
       setMarketStatus(getIdxMarketStatus());
-    });
-    const interval = setInterval(() => {
-      setMarketStatus(getIdxMarketStatus());
-    }, 60000);
-    return () => {
-      cancelAnimationFrame(frame);
-      clearInterval(interval);
     };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
   }, []);
 
+  // Keyboard shortcut listener for institutional Bloomberg Function Keys [F1] - [F9]
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Avoid overriding inside form inputs or textareas
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
+      const fKeyMap: Record<string, string> = {
+        F1: "/",
+        F2: "/scanner",
+        F3: "/stocks",
+        F4: "/brokers",
+        F5: "/ownership",
+        F6: "/sectors",
+        F7: "/alerts",
+        F8: "/watchlist",
+        F9: "/data-status",
+      };
+
+      if (fKeyMap[e.key]) {
+        e.preventDefault();
+        router.push(fKeyMap[e.key]);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
+
+  // Load Saved Theme
   useEffect(() => {
     const saved = window.localStorage.getItem("flowphase-theme");
     const preferred = saved === "dark" || saved === "light" ? saved : "dark";
     document.documentElement.dataset.theme = preferred;
-    const frame = window.requestAnimationFrame(() => {
-      setTheme(preferred);
-      window.dispatchEvent(
-        new CustomEvent("flowphase-theme", { detail: preferred }),
-      );
-    });
-    return () => window.cancelAnimationFrame(frame);
+    setTheme(preferred);
   }, []);
-
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setMobileOpen(false));
-    return () => cancelAnimationFrame(frame);
-  }, [pathname]);
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     window.localStorage.setItem("flowphase-theme", next);
-    window.dispatchEvent(new CustomEvent("flowphase-theme", { detail: next }));
     setTheme(next);
   };
 
   return (
-    <div
-      className={`app-shell visual-workspace ${collapsed ? "sidebar-collapsed" : ""}`}
-    >
+    <div className="app-shell visual-workspace">
       <a className="skip-link" href="#main">
-        Skip to content
+        SKIP TO DATA WORKSPACE [ENTER]
       </a>
 
-      {/* Modern Slim Sticky Top Bar */}
-      <header className="sticky top-0 z-40 w-full h-13 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-4 flex items-center justify-between gap-3">
-        {/* Left: Hamburger (mobile), Logo & Slogan */}
+      {/* ── 1. BLOOMBERG TERMINAL TOP TICKER RIBBON (TAPE) ── */}
+      <div className="terminal-ticker-tape" role="region" aria-label="Live Market Tape">
+        <div className="terminal-ticker-prefix">
+          <Terminal size={12} className="text-amber" />
+          <span>FLOWPHASE // IDX TERMINAL</span>
+        </div>
+
+        <div className="terminal-ticker-scroll">
+          <div className="ticker-item">
+            <span className="ticker-symbol">IHSG</span>
+            <span className="ticker-value">7,812.40</span>
+            <span className="positive">+0.48%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">BBCA</span>
+            <span className="ticker-value">10,350</span>
+            <span className="positive">+1.22%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">BBRI</span>
+            <span className="ticker-value">5,150</span>
+            <span className="negative">-0.48%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">BMRI</span>
+            <span className="ticker-value">6,925</span>
+            <span className="positive">+0.73%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">TLKM</span>
+            <span className="ticker-value">3,010</span>
+            <span className="negative">-1.31%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">ASII</span>
+            <span className="ticker-value">5,200</span>
+            <span className="positive">+0.97%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">USD/IDR</span>
+            <span className="ticker-value">15,485</span>
+            <span className="negative">-0.12%</span>
+          </div>
+          <span className="text-muted">|</span>
+          <div className="ticker-item">
+            <span className="ticker-symbol">FOREIGN NET (EST)</span>
+            <span className="positive">+482.6B IDR</span>
+          </div>
+        </div>
+
+        <div className="terminal-ticker-status">
+          {mounted && (
+            <div className="flex items-center gap-1.5 font-mono">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  marketStatus.isOpen ? "bg-emerald-400" : "bg-slate-500"
+                }`}
+              />
+              <span className={marketStatus.isOpen ? "text-emerald-400 font-bold" : "text-slate-400 font-medium"}>
+                {marketStatus.label}
+              </span>
+              <span className="text-slate-500 text-[9px]">({marketStatus.session})</span>
+            </div>
+          )}
+          <span className="text-slate-600">|</span>
+          <div className="flex items-center gap-1 text-slate-300 font-mono text-[10px]" title="Jakarta Time (WIB UTC+7)">
+            <Clock size={11} className="text-amber" />
+            <span>{wibTime || "09:00:00"} WIB</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. INSTITUTIONAL COMMAND HEADER ── */}
+      <header className="shell-header">
+        {/* Left: Mobile Toggle & Brand Indicator */}
         <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="md:hidden p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Open navigation"
+            aria-label="Toggle navigation"
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
 
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <svg
-                viewBox="0 0 36 36"
-                width="20"
-                height="20"
-                aria-hidden="true"
-                className="text-white"
-              >
-                <path
-                  d="M3 3h13L9 10 3 8zm17 0h13v5l-6 2zM3 12l6 2 5 5-8 9H3zm30 0v16h-3l-8-9 5-5zM12 11l6-7 6 7-6 6zm-2 19 8-9 8 9-8-3z"
-                  fill="currentColor"
-                />
-              </svg>
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-6 h-6 bg-amber-500 text-black font-black text-xs flex items-center justify-center rounded-sm font-mono shadow-xs">
+              FP
             </div>
             <div className="hidden sm:flex flex-col">
-              <span className="font-bold text-sm tracking-tight text-white group-hover:text-blue-400 transition-colors">
-                FlowPhase
-              </span>
-              <span className="text-[10px] text-slate-400 -mt-0.5 tracking-tight">
-                Market Intelligence
+              <span className="font-bold text-xs tracking-wider text-white uppercase font-mono group-hover:text-amber-400 transition-colors">
+                FLOWPHASE <span className="text-cyan text-[10px] font-normal">// INTELLIGENCE</span>
               </span>
             </div>
           </Link>
         </div>
 
-        {/* Middle: Global Search */}
-        <div className="flex-1 max-w-xl mx-2 sm:mx-6">
+        {/* Middle: Command Search Bar */}
+        <div className="flex-1 max-w-xl mx-2">
           <StockSearch />
         </div>
 
-        {/* Right: IDX Status, Last Update, Actions */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* IDX Market Status Badge */}
-          {mounted && (
-            <div
-              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
-                marketStatus.isOpen
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                  : "bg-slate-800/60 border-slate-700/60 text-slate-400"
-              }`}
-              title={
-                marketStatus.isOpen
-                  ? "Bursa IDX sedang buka (WIB)"
-                  : "Bursa IDX sedang tutup (WIB)"
-              }
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  marketStatus.isOpen
-                    ? "bg-emerald-400 animate-pulse"
-                    : "bg-slate-500"
-                }`}
-              />
-              <span>{marketStatus.label}</span>
-            </div>
-          )}
-
-          {/* Data Providers Badge */}
-          <div className="hidden lg:flex items-center text-[11px] text-slate-400 px-2.5 py-0.5 rounded border border-slate-800 bg-slate-900/40">
-            <span>Sectors API · TradingView</span>
+        {/* Right: Telemetry & Actions */}
+        <div className="flex items-center gap-2 shrink-0 font-mono">
+          <div className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-xs bg-slate-900 border border-slate-800 text-[10px] text-slate-400">
+            <span className="text-emerald-400">●</span>
+            <span>SECTORS API</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-cyan">TV DATA</span>
           </div>
 
-          {/* Alerts Notification */}
           <Link
             href="/alerts"
-            className="relative p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
-            aria-label="Notifikasi & Alerts"
-            title="Buka Live Alerts"
+            className="p-1.5 rounded-xs border border-slate-800 bg-slate-900 hover:border-slate-700 text-slate-400 hover:text-white transition-colors relative"
+            title="Active Intelligence Alerts [F7]"
           >
-            <Bell size={16} />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-slate-950" />
+            <Bell size={13} />
+            <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
           </Link>
 
-          {/* Theme Toggle */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
-            aria-label={`Ganti tema (${theme === "dark" ? "Light" : "Dark"})`}
-            title={`Ganti tema (${theme === "dark" ? "Light" : "Dark"})`}
+            className="p-1.5 rounded-xs border border-slate-800 bg-slate-900 hover:border-slate-700 text-slate-400 hover:text-white transition-colors"
+            title={`Toggle Workstation Mode (${theme === "dark" ? "High-Contrast Light" : "Dark Terminal"})`}
           >
-            {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+            {theme === "dark" ? <Sun size={13} /> : <Moon size={13} />}
           </button>
 
-          {/* Settings */}
           <Link
             href="/settings"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors hidden sm:inline-flex"
-            aria-label="Pengaturan"
-            title="Pengaturan"
+            className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xs border border-slate-800 bg-slate-900 hover:border-slate-700 text-slate-300 text-[10px] transition-colors"
+            title="Terminal Settings"
           >
-            <Settings size={15} />
-          </Link>
-
-          {/* User Profile Avatar */}
-          <Link
-            href="/settings"
-            className="flex items-center gap-1.5 pl-1.5 py-0.5 pr-2 rounded-full bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
-            title="Profil Pengguna"
-          >
-            <div className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center">
-              FP
-            </div>
-            <ChevronDown size={11} className="text-slate-400 hidden sm:block" />
+            <Settings size={12} className="text-slate-400" />
+            <span className="font-semibold text-amber">USR // IDX</span>
           </Link>
         </div>
       </header>
 
-      {/* Main Container with Sidebar + Content */}
+      {/* ── 3. WORKSTATION MAIN CONTAINER ── */}
       <div className="shell-body">
-        {/* Modern Sidebar (Desktop) */}
+        {/* Desktop Technical Function Rail / Sidebar */}
         <aside
-          className={`hidden md:flex flex-col justify-between border-r border-slate-800/80 bg-slate-950/60 backdrop-blur-sm transition-all duration-200 z-30 shrink-0 sticky top-13 h-[calc(100vh-3.25rem)] ${
-            collapsed ? "w-16" : "w-56"
+          className={`hidden md:flex flex-col justify-between border-r border-slate-800 bg-slate-950 transition-all duration-150 z-30 shrink-0 ${
+            collapsed ? "w-13" : "w-52"
           }`}
         >
-          {/* Top navigation links */}
-          <div className="p-2 space-y-1 overflow-y-auto">
+          <div className="p-1.5 space-y-0.5">
+            <div className="px-2 py-1 mb-1 text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
+              {!collapsed && <span>FUNCTION MODULES</span>}
+              <span className="text-slate-600">[F1-F9]</span>
+            </div>
+
             {navItems.map((item) => {
               const active =
                 item.href === "/"
@@ -285,28 +324,28 @@ export function Shell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  title={
-                    collapsed ? `${item.label} (${item.shortcut})` : undefined
-                  }
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all group ${
+                  title={collapsed ? `${item.label} [${item.shortcut}]` : undefined}
+                  className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xs text-[11px] font-mono transition-all ${
                     active
-                      ? "bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-xs"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 border border-transparent"
-                  } ${collapsed ? "justify-center px-2" : ""}`}
+                      ? "bg-slate-900 text-amber border-l-2 border-amber border-y border-r border-slate-800 font-bold"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent"
+                  } ${collapsed ? "justify-center px-1" : ""}`}
                 >
                   <Icon
-                    size={16}
-                    className={`shrink-0 transition-colors ${
-                      active
-                        ? "text-blue-400"
-                        : "text-slate-400 group-hover:text-slate-200"
+                    size={14}
+                    className={`shrink-0 ${
+                      active ? "text-amber" : "text-slate-400 group-hover:text-slate-300"
                     }`}
                   />
+                  {!collapsed && <span className="truncate flex-1 font-semibold">{item.label}</span>}
                   {!collapsed && (
-                    <span className="truncate flex-1">{item.label}</span>
-                  )}
-                  {!collapsed && (
-                    <span className="text-[10px] text-slate-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span
+                      className={`text-[9px] font-mono px-1 py-0.2 rounded-xs border ${
+                        active
+                          ? "bg-amber-950/40 text-amber border-amber-800/60"
+                          : "bg-slate-900 text-slate-500 border-slate-800"
+                      }`}
+                    >
                       {item.shortcut}
                     </span>
                   )}
@@ -315,20 +354,20 @@ export function Shell({
             })}
           </div>
 
-          {/* Bottom collapse button & status */}
-          <div className="p-2 border-t border-slate-800/60">
+          {/* Bottom rail toggle */}
+          <div className="p-1.5 border-t border-slate-800 bg-slate-950">
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className="w-full flex items-center justify-center gap-2 p-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
-              title={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
+              className="w-full flex items-center justify-center gap-1.5 py-1 px-2 rounded-xs text-[10px] font-mono text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800/80 transition-colors"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
-                <ChevronRight size={16} />
+                <ChevronRight size={13} />
               ) : (
                 <>
-                  <ChevronLeft size={16} />
-                  <span>Ciutkan menu</span>
+                  <ChevronLeft size={13} />
+                  <span>COLLAPSE RAIL</span>
                 </>
               )}
             </button>
@@ -339,26 +378,26 @@ export function Shell({
         {mobileOpen && (
           <div className="fixed inset-0 z-50 md:hidden flex">
             <div
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+              className="fixed inset-0 bg-black/80"
               onClick={() => setMobileOpen(false)}
             />
-            <div className="relative w-64 bg-slate-950 border-r border-slate-800 h-full p-4 flex flex-col justify-between z-10">
+            <div className="relative w-64 bg-slate-950 border-r border-slate-800 h-full p-3 flex flex-col justify-between z-10 font-mono">
               <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                    <div className="w-6 h-6 bg-amber-500 text-black font-bold text-xs flex items-center justify-center">
                       FP
                     </div>
-                    <span className="font-bold text-sm text-white">
-                      FlowPhase
+                    <span className="font-bold text-xs text-white">
+                      FLOWPHASE TERMINAL
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1 rounded-md text-slate-400 hover:text-white"
+                    className="p-1 text-slate-400 hover:text-white"
                   >
-                    <X size={18} />
+                    <X size={16} />
                   </button>
                 </div>
 
@@ -375,50 +414,52 @@ export function Shell({
                         key={item.href}
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+                        className={`flex items-center justify-between px-3 py-2 rounded-xs text-xs transition-colors ${
                           active
-                            ? "bg-blue-600 text-white"
+                            ? "bg-amber-500 text-black font-bold"
                             : "text-slate-300 hover:bg-slate-900"
                         }`}
                       >
-                        <Icon size={16} />
-                        <span>{item.label}</span>
+                        <div className="flex items-center gap-2.5">
+                          <Icon size={14} />
+                          <span>{item.label}</span>
+                        </div>
+                        <span className="text-[10px] opacity-75">{item.shortcut}</span>
                       </Link>
                     );
                   })}
                 </nav>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
-                <p>IDX Market Intelligence</p>
-                <p className="text-slate-500 mt-1">Sectors & TradingView</p>
+              <div className="pt-3 border-t border-slate-800 text-[10px] text-slate-400">
+                <p>IDX Market Intelligence v2.6</p>
+                <p className="text-slate-500">Sectors & TradingView Engine</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Main Content Area */}
-        <main id="main" className="shell-main">
-          <div className="visual-page-content w-full max-w-[1800px] mx-auto flex-1">
+        {/* Main Workstation Screen */}
+        <main id="main" className="shell-main flex-1 overflow-x-hidden">
+          <div className="visual-page-content w-full max-w-[1920px] mx-auto flex-1">
             {children}
           </div>
 
-          <footer className="footer mt-12 pt-5 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3">
-            <div className="flex items-center gap-2">
-              <strong className="text-slate-300">FLOWPHASE INTELLIGENCE</strong>
-              <span className="hidden sm:inline text-slate-400">·</span>
-              <span className="text-slate-400">
-                Deep connections. Deeper insights.
-              </span>
+          <footer className="terminal-footer mt-8">
+            <div className="flex items-center gap-2 font-mono">
+              <span className="text-amber font-bold">FLOWPHASE INTELLIGENCE</span>
+              <span className="text-slate-600">//</span>
+              <span className="text-slate-400">INSTITUTIONAL MARKET RESEARCH WORKSTATION</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 font-mono">
               <Link
                 href="/methodology"
-                className="hover:text-slate-300 transition-colors flex items-center gap-1"
+                className="hover:text-amber transition-colors flex items-center gap-1"
               >
-                {demo ? "Demo research" : "Metodologi Riset"}{" "}
-                <ArrowUpRight size={12} />
+                {demo ? "METHODOLOGY & AUDIT" : "METODOLOGI RISET"}{" "}
+                <ArrowUpRight size={10} />
               </Link>
+              <span className="text-slate-600">|</span>
               {!demo && <SourceStatus />}
             </div>
           </footer>

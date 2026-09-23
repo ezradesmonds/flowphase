@@ -5,10 +5,10 @@ import Link from "next/link";
 import { X, Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 export const PHASE_COLORS: Record<string, string> = {
-  AKUMULASI: "#3B82F6",
-  POMPOM: "#8B5CF6",
-  MENGGORENG: "#F59E0B",
-  DISTRIBUSI: "#EF4444",
+  AKUMULASI: "#00E676",
+  POMPOM: "#C084FC",
+  MENGGORENG: "#FB923C",
+  DISTRIBUSI: "#FF3355",
   TRANSITION: "#94A3B8",
   UNCERTAIN: "#64748B",
   INSUFFICIENT_DATA: "#475569",
@@ -17,8 +17,8 @@ export const PHASE_COLORS: Record<string, string> = {
 
 export function MiniSparkline({
   data,
-  width = 90,
-  height = 28,
+  width = 80,
+  height = 24,
   color,
   positive,
 }: {
@@ -30,14 +30,14 @@ export function MiniSparkline({
 }) {
   if (!data || data.length < 2) {
     return (
-      <svg width={width} height={height} className="sparkline-svg opacity-30">
+      <svg width={width} height={height} className="sparkline-svg opacity-30 font-mono">
         <line
           x1={2}
           y1={height / 2}
           x2={width - 2}
           y2={height / 2}
           stroke="currentColor"
-          strokeWidth={1.5}
+          strokeWidth={1}
           strokeDasharray="2 2"
         />
       </svg>
@@ -47,7 +47,7 @@ export function MiniSparkline({
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
-  const padding = 2;
+  const padding = 1.5;
 
   const points = data.map((val, idx) => {
     const x = padding + (idx / (data.length - 1)) * (width - padding * 2);
@@ -55,16 +55,8 @@ export function MiniSparkline({
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
 
-  const strokeColor =
-    color ??
-    (positive === true
-      ? "#10B981"
-      : positive === false
-        ? "#EF4444"
-        : data.at(-1)! >= data[0]
-          ? "#10B981"
-          : "#EF4444");
-
+  const isPos = positive ?? (data.at(-1)! >= data[0]);
+  const strokeColor = color ?? (isPos ? "#00E676" : "#FF3355");
   const gradientId = `sg-${Math.random().toString(36).substring(2, 8)}`;
   const firstPoint = points[0].split(",");
   const lastPoint = points[points.length - 1].split(",");
@@ -74,12 +66,12 @@ export function MiniSparkline({
     <svg
       width={width}
       height={height}
-      className="sparkline-svg overflow-visible"
+      className="sparkline-svg overflow-visible font-mono"
       aria-hidden="true"
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={strokeColor} stopOpacity="0.3" />
+          <stop offset="0%" stopColor={strokeColor} stopOpacity="0.25" />
           <stop offset="100%" stopColor={strokeColor} stopOpacity="0.0" />
         </linearGradient>
       </defs>
@@ -87,8 +79,8 @@ export function MiniSparkline({
       <polyline
         fill="none"
         stroke={strokeColor}
-        strokeWidth={1.75}
-        strokeLinecap="round"
+        strokeWidth={1.5}
+        strokeLinecap="square"
         strokeLinejoin="round"
         points={points.join(" ")}
       />
@@ -98,8 +90,8 @@ export function MiniSparkline({
 
 export function ConfidenceRing({
   value,
-  size = 38,
-  strokeWidth = 3.5,
+  size = 32,
+  strokeWidth = 3,
   color,
 }: {
   value: number;
@@ -115,18 +107,18 @@ export function ConfidenceRing({
   const ringColor =
     color ??
     (clamped >= 75
-      ? "#10B981"
+      ? "#00E676"
       : clamped >= 50
-        ? "#3B82F6"
+        ? "#00E5FF"
         : clamped >= 30
-          ? "#F59E0B"
-          : "#EF4444");
+          ? "#FF9F0A"
+          : "#FF3355");
 
   return (
     <div
-      className="relative inline-flex items-center justify-center"
+      className="relative inline-flex items-center justify-center font-mono"
       style={{ width: size, height: size }}
-      title={`Confidence: ${clamped}%`}
+      title={`Phase Confidence: ${clamped}%`}
     >
       <svg
         width={size}
@@ -139,7 +131,7 @@ export function ConfidenceRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="#172332"
           strokeWidth={strokeWidth}
         />
         <circle
@@ -151,16 +143,13 @@ export function ConfidenceRing({
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 0.5s ease" }}
+          strokeLinecap="square"
         />
       </svg>
       <span
-        className="absolute font-semibold tracking-tight text-white tabular-nums"
-        style={{ fontSize: size <= 40 ? 11 : 13 }}
+        className="absolute font-bold text-white tabular-nums text-[10px]"
       >
         {clamped}
-        <span className="text-[9px] opacity-70">%</span>
       </span>
     </div>
   );
@@ -186,8 +175,8 @@ export function PhaseDonutChart({
   selectedPhase?: string | null;
 }) {
   const [hoveredPhase, setHoveredPhase] = useState<string | null>(null);
-  const size = 200;
-  const strokeWidth = 24;
+  const size = 170;
+  const strokeWidth = 18;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
@@ -198,20 +187,20 @@ export function PhaseDonutChart({
     slices.find((s) => s.phase === (hoveredPhase ?? selectedPhase)) ?? null;
 
   return (
-    <div className="flex flex-col items-center justify-center sm:flex-row gap-6 p-2">
-      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-5 p-1 font-mono">
+      <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
         <svg
           width={size}
           height={size}
           className="-rotate-90"
-          aria-label="Distribusi Fase Pasar"
+          aria-label="Market Phase Distribution"
         >
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.05)"
+            stroke="#101824"
             strokeWidth={strokeWidth}
           />
           {slices.map((slice) => {
@@ -231,10 +220,10 @@ export function PhaseDonutChart({
                 r={radius}
                 fill="none"
                 stroke={slice.color}
-                strokeWidth={isHovered || isSelected ? strokeWidth + 4 : strokeWidth}
+                strokeWidth={isHovered || isSelected ? strokeWidth + 3 : strokeWidth}
                 strokeDasharray={strokeDasharray}
                 strokeDashoffset={strokeDashoffset}
-                className="cursor-pointer transition-all duration-200"
+                className="cursor-pointer transition-all duration-150"
                 style={{
                   opacity:
                     hoveredPhase && !isHovered && !isSelected ? 0.35 : 1,
@@ -247,36 +236,36 @@ export function PhaseDonutChart({
           })}
         </svg>
 
-        {/* Center label */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-3">
+        {/* Center telemetry readout */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-2">
           {activeSlice ? (
             <>
-              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">
+              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
                 {activeSlice.label}
               </span>
-              <span className="text-2xl font-bold text-white tabular-nums">
+              <span className="text-xl font-bold text-white tabular-nums">
                 {activeSlice.count}
               </span>
-              <span className="text-[11px] font-medium" style={{ color: activeSlice.color }}>
+              <span className="text-[10px] font-bold" style={{ color: activeSlice.color }}>
                 {activeSlice.percentage.toFixed(1)}%
               </span>
             </>
           ) : (
             <>
-              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">
-                Total Dianalisis
+              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                UNIVERSE
               </span>
-              <span className="text-3xl font-bold text-white tabular-nums">
+              <span className="text-2xl font-bold text-white tabular-nums">
                 {total}
               </span>
-              <span className="text-[11px] text-slate-400">saham IDX</span>
+              <span className="text-[9px] text-amber uppercase font-semibold">TICKERS</span>
             </>
           )}
         </div>
       </div>
 
-      {/* Mini legend */}
-      <div className="flex flex-col gap-2 min-w-[150px]">
+      {/* Terminal data rows */}
+      <div className="flex flex-col gap-1 w-full max-w-[210px]">
         {slices.map((slice) => {
           const isSelected = selectedPhase === slice.phase;
           const isHovered = hoveredPhase === slice.phase;
@@ -287,24 +276,24 @@ export function PhaseDonutChart({
               onClick={() => onSelectPhase?.(slice.phase)}
               onMouseEnter={() => setHoveredPhase(slice.phase)}
               onMouseLeave={() => setHoveredPhase(null)}
-              className={`flex items-center justify-between text-left text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+              className={`flex items-center justify-between text-left text-[11px] px-2 py-1 rounded-xs border transition-all ${
                 isSelected
-                  ? "bg-slate-800/90 border-blue-500/50 shadow-sm"
+                  ? "bg-slate-900 border-amber text-white"
                   : isHovered
-                    ? "bg-slate-800/50 border-slate-700"
-                    : "border-transparent hover:bg-slate-800/30"
+                    ? "bg-slate-900 border-slate-700 text-slate-200"
+                    : "border-slate-900 bg-slate-950/60 hover:bg-slate-900/60 text-slate-400"
               }`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 truncate">
                 <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  className="w-2 h-2 rounded-xs shrink-0"
                   style={{ backgroundColor: slice.color }}
                 />
-                <span className="text-slate-300 font-medium">{slice.label}</span>
+                <span className="font-semibold text-slate-300 truncate">{slice.label}</span>
               </div>
-              <div className="flex items-center gap-1.5 ml-2 tabular-nums">
-                <span className="font-semibold text-white">{slice.count}</span>
-                <span className="text-slate-500 text-[10px]">
+              <div className="flex items-center gap-1 ml-2 tabular-nums">
+                <span className="font-bold text-white">{slice.count}</span>
+                <span className="text-slate-500 text-[9.5px]">
                   ({slice.percentage.toFixed(0)}%)
                 </span>
               </div>
@@ -331,38 +320,38 @@ export function BreadthBar({
   const decPct = ((decliners / total) * 100).toFixed(0);
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between text-xs mb-1.5 font-medium tabular-nums">
-        <span className="text-emerald-400 flex items-center gap-1">
-          <TrendingUp size={13} /> Naik: {advancers} ({advPct}%)
+    <div className="w-full font-mono">
+      <div className="flex items-center justify-between text-[10px] mb-1 font-semibold tabular-nums uppercase">
+        <span className="text-green flex items-center gap-1">
+          <TrendingUp size={11} /> ADV: {advancers} ({advPct}%)
         </span>
         <span className="text-slate-400 flex items-center gap-1">
-          <Minus size={13} /> Tetap: {unchanged} ({uncPct}%)
+          <Minus size={11} /> UNCH: {unchanged} ({uncPct}%)
         </span>
-        <span className="text-rose-400 flex items-center gap-1">
-          <TrendingDown size={13} /> Turun: {decliners} ({decPct}%)
+        <span className="text-red flex items-center gap-1">
+          <TrendingDown size={11} /> DEC: {decliners} ({decPct}%)
         </span>
       </div>
-      <div className="h-2.5 w-full rounded-full overflow-hidden flex bg-slate-800/80 p-0.5 gap-0.5">
+      <div className="h-2 w-full rounded-xs overflow-hidden flex bg-slate-950 p-0.5 gap-0.5 border border-slate-800">
         {advancers > 0 && (
           <div
-            className="h-full bg-emerald-500 rounded-sm transition-all duration-300"
+            className="h-full bg-emerald-500 rounded-xs transition-all duration-200"
             style={{ width: `${(advancers / total) * 100}%` }}
-            title={`Naik: ${advancers} saham`}
+            title={`Advancing: ${advancers} tickers`}
           />
         )}
         {unchanged > 0 && (
           <div
-            className="h-full bg-slate-500 rounded-sm transition-all duration-300"
+            className="h-full bg-slate-600 rounded-xs transition-all duration-200"
             style={{ width: `${(unchanged / total) * 100}%` }}
-            title={`Tidak Berubah: ${unchanged} saham`}
+            title={`Unchanged: ${unchanged} tickers`}
           />
         )}
         {decliners > 0 && (
           <div
-            className="h-full bg-rose-500 rounded-sm transition-all duration-300"
+            className="h-full bg-rose-500 rounded-xs transition-all duration-200"
             style={{ width: `${(decliners / total) * 100}%` }}
-            title={`Turun: ${decliners} saham`}
+            title={`Declining: ${decliners} tickers`}
           />
         )}
       </div>
@@ -384,17 +373,17 @@ export function SectorHeatmap({
 }: {
   sectors: SectorItem[];
   onSelectSector?: (sector: string) => void;
-}) {
+  }) {
   if (!sectors.length) {
     return (
-      <div className="py-8 text-center text-xs text-slate-500">
-        Data sektor belum tersedia pada sampel analisa saat ini.
+      <div className="py-6 text-center text-xs text-slate-500 font-mono">
+        NO SECTOR HEATMAP DATA AVAILABLE.
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 font-mono">
       {sectors.map((s) => {
         const phaseColor = s.dominantPhase ? PHASE_COLORS[s.dominantPhase] : "#64748B";
         const hasChange = s.change !== null && s.change !== undefined;
@@ -406,20 +395,20 @@ export function SectorHeatmap({
             key={s.name}
             type="button"
             onClick={() => onSelectSector?.(s.name)}
-            className="group flex flex-col p-3 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-slate-700 transition-all text-left relative overflow-hidden"
+            className="group flex flex-col p-2 rounded-xs border border-slate-800 bg-slate-950/70 hover:bg-slate-900 hover:border-slate-700 transition-all text-left relative overflow-hidden"
           >
             <div
-              className="absolute top-0 left-0 bottom-0 w-1 opacity-75 group-hover:opacity-100 transition-opacity"
+              className="absolute top-0 left-0 bottom-0 w-1"
               style={{ backgroundColor: phaseColor }}
             />
-            <div className="flex items-start justify-between w-full mb-1 pl-1">
-              <span className="font-semibold text-xs text-slate-200 truncate group-hover:text-blue-400 transition-colors">
+            <div className="flex items-start justify-between w-full mb-1 pl-1.5">
+              <span className="font-bold text-[11px] text-slate-200 truncate group-hover:text-amber transition-colors">
                 {s.name}
               </span>
               {hasChange && (
                 <span
-                  className={`text-[11px] font-semibold tabular-nums ${
-                    isPos ? "text-emerald-400" : isNeg ? "text-rose-400" : "text-slate-400"
+                  className={`text-[10.5px] font-bold tabular-nums ${
+                    isPos ? "text-green" : isNeg ? "text-red" : "text-slate-400"
                   }`}
                 >
                   {isPos ? "+" : ""}
@@ -427,11 +416,11 @@ export function SectorHeatmap({
                 </span>
               )}
             </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pl-1 mt-1">
-              <span>{s.count} emiten</span>
+            <div className="flex items-center justify-between text-[9.5px] text-slate-400 pl-1.5 mt-0.5">
+              <span>{s.count} TICKERS</span>
               {s.dominantPhase && (
                 <span
-                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  className="px-1 py-0.2 rounded-xs font-semibold"
                   style={{
                     backgroundColor: `${phaseColor}20`,
                     color: phaseColor,
@@ -456,27 +445,27 @@ export function SectorQuadrantChart({
   onSelectSector?: (sector: string) => void;
 }) {
   return (
-    <div className="relative w-full aspect-[16/10] min-h-[220px] max-h-[300px] bg-slate-950/60 rounded-xl border border-slate-800 p-4 flex flex-col justify-between overflow-hidden">
+    <div className="relative w-full aspect-[16/9] min-h-[200px] max-h-[260px] bg-slate-950 rounded-xs border border-slate-800 p-3 flex flex-col justify-between overflow-hidden font-mono">
       {/* Background quadrant lines & labels */}
       <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 pointer-events-none">
-        <div className="border-r border-b border-slate-800/80 p-2.5 flex items-start justify-start">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-purple-400/60 bg-purple-500/10 px-2 py-0.5 rounded">
-            Improving (Membaik)
+        <div className="border-r border-b border-slate-800/60 p-2 flex items-start justify-start">
+          <span className="text-[9px] uppercase font-bold tracking-wider text-purple-400/80 bg-purple-950/40 border border-purple-900/50 px-1.5 py-0.5 rounded-xs">
+            [IMPROVING]
           </span>
         </div>
-        <div className="border-b border-slate-800/80 p-2.5 flex items-start justify-end">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400/60 bg-emerald-500/10 px-2 py-0.5 rounded">
-            Leading (Memimpin)
+        <div className="border-b border-slate-800/60 p-2 flex items-start justify-end">
+          <span className="text-[9px] uppercase font-bold tracking-wider text-emerald-400/80 bg-emerald-950/40 border border-emerald-900/50 px-1.5 py-0.5 rounded-xs">
+            [LEADING]
           </span>
         </div>
-        <div className="border-r border-slate-800/80 p-2.5 flex items-end justify-start">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-rose-400/60 bg-rose-500/10 px-2 py-0.5 rounded">
-            Lagging (Tertinggal)
+        <div className="border-r border-slate-800/60 p-2 flex items-end justify-start">
+          <span className="text-[9px] uppercase font-bold tracking-wider text-rose-400/80 bg-rose-950/40 border border-rose-900/50 px-1.5 py-0.5 rounded-xs">
+            [LAGGING]
           </span>
         </div>
-        <div className="p-2.5 flex items-end justify-end">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400/60 bg-amber-500/10 px-2 py-0.5 rounded">
-            Weakening (Melemah)
+        <div className="p-2 flex items-end justify-end">
+          <span className="text-[9px] uppercase font-bold tracking-wider text-amber-400/80 bg-amber-950/40 border border-amber-900/50 px-1.5 py-0.5 rounded-xs">
+            [WEAKENING]
           </span>
         </div>
       </div>
@@ -489,29 +478,27 @@ export function SectorQuadrantChart({
       <div className="relative z-10 w-full h-full">
         {!sectors.length ? (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">
-            Data rotasi sektor belum tersedia pada sampel analisa saat ini.
+            NO SECTOR ROTATION DATA.
           </div>
         ) : (
           sectors.map((s) => {
-            // Normalize x (-1 to 1) to percentage 10% to 90%
             const left = 50 + s.x * 38;
-            // Normalize y (-1 to 1) to percentage: y=1 is top (15%), y=-1 is bottom (85%)
             const top = 50 - s.y * 38;
-            const color = s.phase ? PHASE_COLORS[s.phase] ?? "#38BDF8" : "#38BDF8";
+            const color = s.phase ? PHASE_COLORS[s.phase] ?? "#00E5FF" : "#00E5FF";
 
             return (
               <button
                 key={s.name}
                 type="button"
                 onClick={() => onSelectSector?.(s.name)}
-                className="group absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 focus:outline-none"
+                className="group absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 focus:outline-none"
                 style={{ left: `${left}%`, top: `${top}%` }}
               >
                 <span
-                  className="w-3.5 h-3.5 rounded-full border-2 border-slate-900 shadow-md transition-transform group-hover:scale-125"
+                  className="w-2.5 h-2.5 rounded-xs border border-slate-950 shadow-xs"
                   style={{ backgroundColor: color }}
                 />
-                <span className="text-[11px] font-semibold text-slate-300 bg-slate-900/90 border border-slate-800 px-2 py-0.5 rounded shadow-sm group-hover:text-white group-hover:border-slate-600 transition-colors whitespace-nowrap">
+                <span className="text-[10px] font-bold text-slate-300 bg-slate-900/90 border border-slate-800 px-1.5 py-0.2 rounded-xs group-hover:text-amber group-hover:border-slate-600 transition-colors whitespace-nowrap">
                   {s.name}
                 </span>
               </button>
@@ -539,41 +526,39 @@ export function DetailDrawer({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex justify-end font-mono">
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/70 backdrop-blur-xs"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer panel */}
       <div
-        className="relative z-10 w-full max-w-lg bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col h-full overflow-hidden animate-in slide-in-from-right duration-250"
+        className="relative z-10 w-full max-w-lg bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col h-full overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
       >
-        <div className="flex items-start justify-between p-5 border-b border-slate-800/80 bg-slate-950/40">
+        <div className="flex items-center justify-between p-3.5 border-b border-slate-800 bg-slate-900">
           <div>
-            <h2 id="drawer-title" className="text-lg font-bold text-white">
+            <h2 id="drawer-title" className="text-xs font-bold text-white uppercase tracking-wide">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">{subtitle}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            aria-label="Tutup panel"
+            className="p-1 rounded-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            aria-label="Close panel"
           >
-            <X size={18} />
+            <X size={15} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">{children}</div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">{children}</div>
       </div>
     </div>
   );
@@ -594,18 +579,17 @@ export function MetricTooltip({
 
   return (
     <div
-      className="relative inline-flex items-center gap-1 cursor-help"
+      className="relative inline-flex items-center gap-1 cursor-help font-mono"
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
     >
-      <span className="text-slate-400 text-xs font-medium">{label}</span>
-      {value && <span className="text-white text-xs font-semibold">{value}</span>}
-      {icon && <Info size={12} className="text-slate-500 hover:text-slate-300 transition-colors" />}
+      <span className="text-slate-400 text-[10px] font-medium">{label}</span>
+      {value && <span className="text-white text-[10px] font-bold">{value}</span>}
+      {icon && <Info size={11} className="text-slate-500 hover:text-amber transition-colors" />}
 
       {show && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-2 rounded-lg bg-slate-950 border border-slate-700 shadow-xl text-[11px] text-slate-200 z-30 pointer-events-none leading-relaxed text-center">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-48 p-2 rounded-xs bg-slate-950 border border-slate-700 shadow-2xl text-[10px] text-slate-300 z-40 pointer-events-none leading-relaxed text-center">
           {explanation}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import {
   FlaskConical,
   SearchX,
   CircleAlert,
+  Terminal,
 } from "lucide-react";
 import type { MarketPhase } from "@/domain/market";
 import { phaseLabel } from "@/lib/format";
@@ -19,10 +20,10 @@ export function PhaseBadge({ phase }: { phase: MarketPhase }) {
 
 export function DemoNotice() {
   return (
-    <div className="demo-notice">
-      <FlaskConical size={15} strokeWidth={1.8} />
-      <strong>DEMO DATA — NOT LIVE MARKET DATA</strong>
-      <span>Synthetic analysis. Market candles are labeled separately.</span>
+    <div className="demo-notice" role="status">
+      <FlaskConical size={13} strokeWidth={2} />
+      <strong>[DEMO ENVIRONMENT]</strong>
+      <span>SYNTHETIC DETERMINISTIC FIXTURES · MARKET CANDLES LABELED SEPARATELY</span>
     </div>
   );
 }
@@ -42,7 +43,7 @@ export function PageHeading({
     <div className="page-heading">
       <div>
         <div className="eyebrow">
-          {eyebrow ?? "FLOWPHASE / RESEARCH WORKSPACE"}
+          {eyebrow ?? "FLOWPHASE // MARKET INTELLIGENCE"}
         </div>
         <h1>{title}</h1>
         <p>{description}</p>
@@ -68,9 +69,9 @@ export function Panel({
   return (
     <section className={`panel ${className}`}>
       <div className="panel-heading">
-        <div>
+        <div className="flex items-center gap-2">
           <h2>{title}</h2>
-          {note && <p>{note}</p>}
+          {note && <span className="panel-note text-slate-500">// {note}</span>}
         </div>
         {action}
       </div>
@@ -80,13 +81,15 @@ export function Panel({
 }
 
 export function Confidence({ value }: { value: number }) {
+  const isHigh = value >= 75;
+  const isMed = value >= 45;
   return (
-    <div className="confidence">
-      <span>
+    <div className="confidence font-mono">
+      <span className={isHigh ? "text-green" : isMed ? "text-cyan" : "text-amber"}>
         {value}
-        <small>/100</small>
+        <small className="text-slate-500 font-normal">/100</small>
       </span>
-      <div className="meter">
+      <div className={`meter ${value < 40 ? "danger" : ""}`}>
         <i style={{ width: `${value}%` }} />
       </div>
     </div>
@@ -94,8 +97,8 @@ export function Confidence({ value }: { value: number }) {
 }
 
 export function EmptyState({
-  title = "No matching stocks",
-  description = "Try another ticker or loosen your filters.",
+  title = "NO MATCHING SECURITIES",
+  description = "Adjust filters or query parameters to expand scan universe.",
   children,
 }: {
   title?: string;
@@ -103,10 +106,10 @@ export function EmptyState({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="empty-state">
-      <SearchX size={30} strokeWidth={1.5} />
-      <h2>{title}</h2>
-      <p>{description}</p>
+    <div className="empty-state p-8 text-center flex flex-col items-center justify-center font-mono">
+      <SearchX size={24} className="text-slate-600 mb-2" />
+      <h2 className="text-xs font-bold text-slate-300 uppercase">{title}</h2>
+      <p className="text-[11px] text-slate-500 mt-1 max-w-md">{description}</p>
       {children}
     </div>
   );
@@ -114,15 +117,14 @@ export function EmptyState({
 
 export function ErrorState({ reset }: { reset: () => void }) {
   return (
-    <div className="empty-state" role="alert">
-      <CircleAlert size={30} strokeWidth={1.5} />
-      <h2>This view could not be loaded</h2>
-      <p>
-        Provider data is unavailable. Your local watchlist is unaffected. Try
-        loading the view again.
+    <div className="empty-state p-8 text-center flex flex-col items-center justify-center font-mono" role="alert">
+      <CircleAlert size={24} className="text-rose-500 mb-2" />
+      <h2 className="text-xs font-bold text-white uppercase">DATA PROVIDER DISCONNECTED</h2>
+      <p className="text-[11px] text-slate-400 mt-1 max-w-md">
+        Remote data provider response failed. Local watchlist cache is retained.
       </p>
-      <button className="button" onClick={reset}>
-        Try again
+      <button className="button primary mt-3" onClick={reset}>
+        RETRY CONNECTION [↵]
       </button>
     </div>
   );
@@ -133,10 +135,10 @@ export function Skeleton() {
     <div
       aria-busy="true"
       aria-label="Loading research view"
-      className="panel skeleton-panel"
+      className="panel skeleton-panel p-4 space-y-2"
     >
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="skeleton" />
+        <div key={i} className="skeleton h-6 bg-slate-900 border border-slate-800 rounded-xs" />
       ))}
     </div>
   );
@@ -145,11 +147,11 @@ export function Skeleton() {
 export function DetailLink({ ticker }: { ticker: string }) {
   return (
     <Link
-      className="icon-link"
+      className="button py-0.5 px-1.5 text-[10px] text-cyan hover:text-white"
       href={`/stocks/${ticker}`}
       aria-label={`Analyze ${ticker}`}
     >
-      <ArrowUpRight size={16} strokeWidth={2} />
+      ANALYZE <ArrowUpRight size={11} />
     </Link>
   );
 }

@@ -14,29 +14,29 @@ export function CandleChart({ candles }: { candles: DailyCandle[] }) {
     const chart = createChart(ref.current, {
       autoSize: true,
       layout: {
-        background: { type: ColorType.Solid, color: "#121822" },
-        textColor: "#929eaf",
-        fontFamily: "Arial",
-        fontSize: 11,
-        attributionLogo: true,
+        background: { type: ColorType.Solid, color: "#04070b" },
+        textColor: "#7c8ba1",
+        fontFamily: '"IBM Plex Mono", monospace, sans-serif',
+        fontSize: 10,
+        attributionLogo: false,
       },
       grid: {
-        vertLines: { color: "#202735" },
-        horzLines: { color: "#202735" },
+        vertLines: { color: "#121a24" },
+        horzLines: { color: "#121a24" },
       },
-      rightPriceScale: { borderColor: "#303b4e" },
-      timeScale: { borderColor: "#303b4e", timeVisible: false },
+      rightPriceScale: { borderColor: "#1a2636" },
+      timeScale: { borderColor: "#1a2636", timeVisible: false },
       crosshair: {
-        vertLine: { color: "#6883b2" },
-        horzLine: { color: "#6883b2" },
+        vertLine: { color: "rgba(0, 229, 255, 0.4)" },
+        horzLine: { color: "rgba(0, 229, 255, 0.4)" },
       },
     });
     const price = chart.addSeries(CandlestickSeries, {
-      upColor: "#65d3a7",
-      downColor: "#f08a91",
+      upColor: "#00e676",
+      downColor: "#ff3355",
       borderVisible: false,
-      wickUpColor: "#65d3a7",
-      wickDownColor: "#f08a91",
+      wickUpColor: "#00e676",
+      wickDownColor: "#ff3355",
     });
     price.setData(
       candles.map((c) => ({
@@ -60,7 +60,7 @@ export function CandleChart({ candles }: { candles: DailyCandle[] }) {
       candles.map((c) => ({
         time: c.date,
         value: c.volume,
-        color: c.close >= c.open ? "#284d46" : "#54313e",
+        color: c.close >= c.open ? "rgba(0, 230, 118, 0.35)" : "rgba(255, 51, 85, 0.35)",
       })),
     );
     volume.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });

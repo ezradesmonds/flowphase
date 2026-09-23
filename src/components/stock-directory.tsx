@@ -7,8 +7,10 @@ import { CORE_PHASES } from "@/domain/intelligence";
 import { num } from "@/lib/intelligence/format";
 import type { StockUniverse } from "@/domain/securities";
 import { parseWatchlist } from "@/lib/watchlist";
-import { PageHeading, EmptyState } from "./ui";
+import { PageHeading, EmptyState, Panel } from "./ui";
+
 const STORAGE_KEY = "flowphase.idx.watchlist.v1";
+
 export function StockDirectory({
   universe,
   initialQuery = "",
@@ -34,14 +36,16 @@ export function StockDirectory({
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState<AnalysisSummary[]>([]);
   const [loadingTicker, setLoadingTicker] = useState("");
+
   const analysisMap = useMemo(
     () => new Map([...analyses, ...loaded].map((a) => [a.ticker, a])),
     [analyses, loaded],
   );
+
   async function analyseStock(ticker: string) {
     setBusy(true);
     setLoadingTicker(ticker);
-    setBatch(`Memuat data ${ticker}…`);
+    setBatch(`ACQUIRING TELEMETRY FOR ${ticker}...`);
     try {
       const response = await fetch("/api/intelligence", {
         method: "POST",
@@ -52,18 +56,19 @@ export function StockDirectory({
       const result: AnalysisSummary = await response.json();
       setLoaded((old) => [...old.filter((a) => a.ticker !== ticker), result]);
       setBatch(
-        `${ticker} selesai dianalisis. Kolom yang belum terisi membutuhkan data tambahan dari sumber.`,
+        `${ticker} CYCLE MODEL EVALUATED. SAVED IN LOCAL CACHE.`,
       );
       router.refresh();
     } catch {
       setBatch(
-        `Data ${ticker} belum dapat dimuat. Coba lagi saat sumber tersedia.`,
+        `TELEMETRY FOR ${ticker} COULD NOT BE ACQUIRED.`,
       );
     } finally {
       setBusy(false);
       setLoadingTicker("");
     }
   }
+
   const [query, setQuery] = useState(initialQuery);
   const [sector, setSector] = useState("");
   const [subsector, setSubsector] = useState("");
@@ -74,6 +79,7 @@ export function StockDirectory({
   const [ready, setReady] = useState(false);
   const [storageMessage, setStorageMessage] = useState("");
   const [onlySaved, setOnlySaved] = useState(view === "watchlist");
+
   useEffect(() => {
     const valid = universe.stocks.map((s) => s.ticker);
     const timer = setTimeout(() => {
@@ -100,6 +106,7 @@ export function StockDirectory({
       window.removeEventListener("storage", sync);
     };
   }, [universe.stocks]);
+
   function toggle(ticker: string) {
     const next = saved.includes(ticker)
       ? saved.filter((t) => t !== ticker)
@@ -113,6 +120,7 @@ export function StockDirectory({
       );
     }
   }
+
   const sectors = [
     ...new Set(universe.stocks.flatMap((s) => (s.sector ? [s.sector] : []))),
   ].sort();
@@ -123,6 +131,7 @@ export function StockDirectory({
         .flatMap((s) => (s.subsector ? [s.subsector] : [])),
     ),
   ].sort();
+
   const filtered = useMemo(
     () =>
       universe.stocks
@@ -219,6 +228,7 @@ export function StockDirectory({
       analysisMap,
     ],
   );
+
   const currentPage = Math.min(
     page,
     Math.max(0, Math.ceil(filtered.length / 50) - 1),
@@ -242,7 +252,7 @@ export function StockDirectory({
     let completed = 0;
     for (const stock of targets) {
       setBatch(
-        `Menganalisis ${stock.ticker} · ${completed + 1}/${targets.length}…`,
+        `EVALUATING ${stock.ticker} · ${completed + 1}/${targets.length}…`,
       );
       try {
         const r = await fetch("/api/intelligence", {
@@ -252,7 +262,7 @@ export function StockDirectory({
         });
         if (!r.ok) {
           setBatch(
-            `Terhenti pada ${stock.ticker}: sumber sedang sibuk atau limit tercapai. Silakan coba lagi.`,
+            `HALTED AT ${stock.ticker}: RATE LIMIT OR BUSY FEED.`,
           );
           break;
         }
@@ -263,14 +273,14 @@ export function StockDirectory({
         ]);
         completed++;
       } catch {
-        setBatch("Koneksi terputus. Pemuatan batch dihentikan.");
+        setBatch("CONNECTION INTERRUPTED. BATCH HALTED.");
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 600));
     }
     if (completed === targets.length) {
       setBatch(
-        `${completed} saham selesai dimuat. Hasil disimpan di cache.`,
+        `${completed} SECURITIES ACQUIRED AND CACHED LOCALLY.`,
       );
     }
     setBusy(false);
@@ -278,97 +288,91 @@ export function StockDirectory({
   }
 
   const title = {
-    scanner: "IDX market scanner",
-    overview: "The IDX research universe.",
-    stocks: "Stock intelligence",
-    watchlist: "Your research shortlist.",
-    brokers: "Broker flow by stock",
-    replay: "Market cycle replay",
+    scanner: "IDX MARKET SCANNER",
+    overview: "IDX RESEARCH UNIVERSE",
+    stocks: "STOCK INTELLIGENCE COCKPIT",
+    watchlist: "SAVED SECURITIES WATCHLIST",
+    brokers: "BROKER TRANSACTION FLOW BY STOCK",
+    replay: "MARKET CYCLE REPLAY",
   }[view];
+
   return (
-    <>
+    <div className="space-y-2 font-mono">
       <PageHeading
+        eyebrow="FLOWPHASE // MARKET UNIVERSE"
         title={title}
-        description="Verified Sectors company universe · TradingView market candles and calculated phase regions."
+        description="Verified Sectors API company universe · TradingView market candles and calculated phase regions."
       />
+
       <div className="demo-notice">
-        <strong>SECTORS · IDX COMPANIES</strong>
+        <strong>SECTORS · IDX UNIVERSE</strong>
         <span>
-          {universe.total.toLocaleString()} stocks · Fetched{" "}
-          {universe.fetchedAt} · 24-hour directory cache
+          {universe.total.toLocaleString()} SECURITIES · FETCHED{" "}
+          {universe.fetchedAt} · 24H DIRECTORY CACHE
         </span>
       </div>
+
       {universe.warnings.map((w) => (
-        <p className="chart-caption" role="status" key={w}>
-          {w}
+        <p className="chart-caption text-amber font-semibold" role="status" key={w}>
+          [WARNING] {w}
         </p>
       ))}
+
       {view === "overview" && (
         <div className="detail-metrics">
           {[
-            ["IDX companies", universe.total],
-            ["Sectors available", sectors.length],
+            ["IDX COMPANIES", universe.total],
+            ["SECTORS REGISTERED", sectors.length],
             [
-              "Free-float coverage",
+              "FREE-FLOAT COVERAGE",
               universe.stocks.filter((s) => s.freeFloat !== null).length,
             ],
-            ["Chart source", "TradingView"],
+            ["CHART ENGINE", "TradingView"],
           ].map(([label, value]) => (
             <div className="detail-metric" key={label}>
               <span>{label}</span>
-              <strong>{value}</strong>
+              <strong className="text-white">{value}</strong>
             </div>
           ))}
         </div>
       )}
-      <p className="chart-caption">
-        {analysisMap.size} dari {universe.total} saham sudah dianalisis. Pilih
-        “Analisis” untuk memuat harga, fase, dan broker. Data yang tidak
-        disediakan sumber tetap ditandai belum tersedia.
-      </p>
-      <div
-        className="analysis-toolbar"
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <button
-          className="button"
-          disabled={busy || !unanalyzedOnPage.length}
-          onClick={() => runBatch()}
-        >
-          {busy
-            ? "Memuat analisis…"
-            : `Muat Semua di Halaman Ini (${unanalyzedOnPage.length} saham)`}
-        </button>
-        {unanalyzedOnPage.length > 5 && (
+
+      {/* Batch Actions Toolbar */}
+      <div className="filter-toolbar justify-between">
+        <div className="flex items-center gap-2">
           <button
-            className="button"
-            disabled={busy}
-            onClick={() => runBatch(5)}
+            className="terminal-btn primary"
+            disabled={busy || !unanalyzedOnPage.length}
+            onClick={() => runBatch()}
           >
-            Analisis 5 saham
+            {busy
+              ? "ACQUIRING BATCH..."
+              : `BATCH ANALYZE PAGE (${unanalyzedOnPage.length} STOCKS)`}
           </button>
-        )}
-        <span role="status">
-          {batch ||
-            "On demand · data disimpan di cache lokal"}
-        </span>
+          {unanalyzedOnPage.length > 5 && (
+            <button
+              className="terminal-btn"
+              disabled={busy}
+              onClick={() => runBatch(5)}
+            >
+              ANALYZE 5 STOCKS
+            </button>
+          )}
+          <span className="text-[10px] text-amber font-semibold ml-2" role="status">
+            {batch || `${analysisMap.size}/${universe.total} SECURITIES ACQUIRED IN CACHE`}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+          <span>PAGE {currentPage + 1} OF {Math.max(1, Math.ceil(filtered.length / 50))}</span>
+        </div>
       </div>
-      <div className="panel" style={{ padding: 20, marginBottom: 20 }}>
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            alignItems: "end",
-          }}
-        >
-          <label className="field">
-            <span>Phase</span>
+
+      {/* Modular Filter Panel */}
+      <Panel title="[SEC.01 // UNIVERSE_CRITERIA_FILTERS]">
+        <div className="filter-toolbar" style={{ margin: 0, border: "none" }}>
+          <div className="filter-group">
+            <span className="filter-label">PHASE:</span>
             <select
               value={phase}
               onChange={(e) => {
@@ -376,7 +380,7 @@ export function StockDirectory({
                 setPage(0);
               }}
             >
-              <option value="">All phases</option>
+              <option value="">ALL PHASES</option>
               {[
                 ...CORE_PHASES,
                 "TRANSITION",
@@ -384,12 +388,13 @@ export function StockDirectory({
                 "INSUFFICIENT_DATA",
                 "POST_DISTRIBUTION_MARKDOWN",
               ].map((p) => (
-                <option key={p}>{p}</option>
+                <option key={p} value={p}>{p}</option>
               ))}
             </select>
-          </label>
-          <label className="field">
-            <span>Phase transition</span>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">TRANSITION:</span>
             <select
               value={transition}
               onChange={(e) => {
@@ -397,7 +402,7 @@ export function StockDirectory({
                 setPage(0);
               }}
             >
-              <option value="">All transitions</option>
+              <option value="">ALL TRANSITIONS</option>
               {[
                 "AKUMULASI→POMPOM",
                 "POMPOM→MENGGORENG",
@@ -405,82 +410,41 @@ export function StockDirectory({
                 "DISTRIBUSI→POST_DISTRIBUTION_MARKDOWN",
                 "POST_DISTRIBUTION_MARKDOWN→AKUMULASI",
               ].map((t) => (
-                <option key={t}>{t}</option>
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
-          </label>
-          <label className="field">
-            <span>Minimum confidence</span>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">MIN CONF:</span>
             <input
               type="number"
               min="0"
               max="100"
               value={minimum}
+              placeholder="0-100"
+              className="w-16"
               onChange={(e) => setMinimum(e.target.value)}
             />
-          </label>
-          <label className="field">
-            <span>Broker flow</span>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">FLOW:</span>
             <select value={flow} onChange={(e) => setFlow(e.target.value)}>
-              <option value="">Any flow</option>
+              <option value="">ANY FLOW</option>
               {[
                 "institutional buy",
                 "institutional sell",
                 "retail buy",
                 "retail sell",
               ].map((p) => (
-                <option key={p}>{p}</option>
+                <option key={p} value={p}>{p.toUpperCase()}</option>
               ))}
             </select>
-          </label>
-          <label className="field">
-            <span>Alert</span>
-            <select value={alert} onChange={(e) => setAlert(e.target.value)}>
-              <option value="">Any alert</option>
-              {[
-                "ACCUMULATION_CANDIDATE",
-                "POMPOM_ATTENTION_CANDIDATE",
-                "AGGRESSIVE_MARKUP_CANDIDATE",
-                "DISTRIBUTION_CANDIDATE",
-                "POST_DISTRIBUTION_MARKDOWN",
-                "RETAIL_ABSORPTION",
-                "SUSPECTED_CROSSING",
-                "PHASE_TRANSITION",
-                "INSUFFICIENT_DATA",
-                "INSTITUTIONAL_BLOCK_FLOW",
-                "UNUSUAL_NET_SELL",
-                "ABNORMAL_TOTAL_VOLUME",
-                "HIGH_VOLUME_BREAKOUT",
-                "HIGH_VOLUME_BREAKDOWN",
-                "VOLUME_WITHOUT_PRICE_PROGRESS",
-              ].map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-              <option disabled>Stealth · granular data unavailable</option>
-              <option disabled>Foreign flow · unavailable</option>
-            </select>
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={sufficient}
-              onChange={(e) => setSufficient(e.target.checked)}
-            />{" "}
-            Sufficient history only
-          </label>
-          <label className="field">
-            <span>Ticker or company</span>
-            <input
-              aria-label="Ticker or company"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(0);
-              }}
-            />
-          </label>
-          <label className="field">
-            <span>Sector</span>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">SECTOR:</span>
             <select
               value={sector}
               onChange={(e) => {
@@ -489,29 +453,15 @@ export function StockDirectory({
                 setPage(0);
               }}
             >
-              <option value="">All sectors</option>
+              <option value="">ALL SECTORS</option>
               {sectors.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
-          </label>
-          <label className="field">
-            <span>Subsector</span>
-            <select
-              value={subsector}
-              onChange={(e) => {
-                setSubsector(e.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="">All subsectors</option>
-              {subsectors.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>Sort by</span>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">SORT BY:</span>
             <select
               value={sort}
               onChange={(e) => {
@@ -531,28 +481,21 @@ export function StockDirectory({
                 setPage(0);
               }}
             >
-              <option value="akumulasi">Strongest accumulation</option>
-              <option value="newaccumulation">Newest accumulation</option>
-              <option value="pompom">Pompom attention candidates</option>
-              <option value="menggoreng">Menggoreng candidates</option>
-              <option value="distribusi">Distribution confidence</option>
-              <option value="alert">Newest active alert</option>
-              <option value="confidence">Strongest phase confidence</option>
-              <option value="newest">Newest phase transition</option>
-              <option value="volume">Highest relative volume</option>
-              <option value="institutional buy">
-                Largest institutional net buy
-              </option>
-              <option value="institutional sell">
-                Largest institutional net sell
-              </option>
-              <option value="ticker">Ticker A–Z</option>
-              <option value="company">Company A–Z</option>
-              <option value="float">Free float descending</option>
+              <option value="akumulasi">STRONGEST AKUMULASI</option>
+              <option value="newaccumulation">NEWEST AKUMULASI</option>
+              <option value="pompom">POMPOM ATTENTION</option>
+              <option value="menggoreng">MENGGORENG SIGNALS</option>
+              <option value="distribusi">DISTRIBUSI CONFIDENCE</option>
+              <option value="alert">NEWEST ACTIVE ALERT</option>
+              <option value="confidence">HIGHEST CONFIDENCE</option>
+              <option value="volume">HIGHEST RVOL</option>
+              <option value="ticker">TICKER (A-Z)</option>
+              <option value="float">FREE FLOAT (DESC)</option>
             </select>
-          </label>
+          </div>
+
           <button
-            className="button"
+            className="terminal-btn"
             onClick={() => {
               setQuery("");
               setSector("");
@@ -568,71 +511,46 @@ export function StockDirectory({
               setSufficient(false);
             }}
           >
-            Reset
+            RESET
           </button>
-          <label className="field">
-            <span>Maximum free float (%)</span>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={maxFloat}
-              placeholder="Any"
-              onChange={(e) => {
-                setMaxFloat(
-                  e.target.value === ""
-                    ? ""
-                    : String(
-                        Math.max(0, Math.min(100, Number(e.target.value))),
-                      ),
-                );
-                setPage(0);
-              }}
-            />
-          </label>
+
           <button
-            className="button"
-            aria-pressed={onlySaved}
+            className={`terminal-btn ${onlySaved ? "active" : ""}`}
             disabled={!ready}
             onClick={() => {
               setOnlySaved(!onlySaved);
               setPage(0);
             }}
           >
-            {onlySaved ? "Show all stocks" : "Watchlist only"}
+            {onlySaved ? "SHOW ALL STOCKS" : "WATCHLIST ONLY"}
           </button>
         </div>
-      </div>
-      {storageMessage && <p role="status">{storageMessage}</p>}
-      <p className="chart-caption" role="status">
-        {filtered.length} of {universe.total} stocks ·{" "}
-        {onlySaved ? "Saved in this browser" : "Sectors directory"}
-      </p>
-      <div className="panel table-scroll">
+      </Panel>
+
+      {storageMessage && <p className="chart-caption text-amber" role="status">{storageMessage}</p>}
+
+      {/* Main Dense Table */}
+      <div className="panel table-scroll" style={{ marginBottom: 4 }}>
         {filtered.length ? (
           <table>
             <thead>
               <tr>
                 {[
-                  "Ticker",
-                  "Company",
-                  "Current phase / confidence",
-                  "Market condition",
-                  "Coverage",
-                  "Phase start",
-                  "Duration · bars",
-                  "Phase return",
-                  "Top net buyer",
-                  "Top net seller",
-                  "Crossing risk",
-                  "Institutional proxy · lots",
-                  "Retail · lots",
-                  "Observed institutional proxy net change · lots",
+                  "TICKER",
+                  "COMPANY",
+                  "PHASE / CONFIDENCE",
+                  "COVERAGE",
+                  "PHASE START",
+                  "DURATION",
+                  "PRICE RETURN",
+                  "TOP BUYER",
+                  "TOP SELLER",
+                  "CROSSING RISK",
+                  "INSTITUTIONAL LOTS",
+                  "RETAIL LOTS",
                   "RVOL",
-                  "Latest alert",
-                  "Updated",
-                  "Watchlist",
+                  "LATEST ALERT",
+                  "SAVED",
                 ].map((t) => (
                   <th key={t}>{t}</th>
                 ))}
@@ -641,242 +559,132 @@ export function StockDirectory({
             <tbody>
               {filtered
                 .slice(currentPage * 50, currentPage * 50 + 50)
-                .map((stock) => (
-                  <tr key={stock.ticker}>
-                    <td>
-                      <Link
-                        prefetch={false}
-                        className="stock-name"
-                        href={`/stocks/${stock.ticker}`}
-                      >
-                        {stock.ticker}
-                      </Link>
-                    </td>
-                    <td>{stock.companyName}</td>
-                    <td>
-                      {analysisMap.has(stock.ticker) ? (
-                        <>
-                          {analysisMap.get(stock.ticker)!.label}
-                          <small className="cell-note">
-                            {analysisMap.get(stock.ticker)!.confidence}% ·{" "}
-                            <Link
-                              prefetch={false}
-                              href={`/stocks/${stock.ticker}`}
-                            >
-                              Why?
-                            </Link>
-                          </small>
-                          {!analysisMap.get(stock.ticker)!.brokerAvailable && (
-                            <small className="cell-note">
-                              Data broker belum tersedia.{" "}
-                              <button
-                                className="button"
-                                disabled={busy}
-                                onClick={() => analyseStock(stock.ticker)}
-                              >
-                                Muat ulang {stock.ticker}
-                              </button>
-                            </small>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <span className="muted">Belum dianalisis</span>
-                          <small className="cell-note">
-                            <button
-                              className="button"
-                              disabled={busy}
-                              onClick={() => analyseStock(stock.ticker)}
-                            >
-                              {loadingTicker === stock.ticker
-                                ? "Memuat…"
-                                : `Analisis ${stock.ticker}`}
-                            </button>
-                          </small>
-                        </>
-                      )}
-                    </td>
-                    {!analysisMap.has(stock.ticker) ? (
-                      <td colSpan={14}>
-                        <div className="pending-analysis">
-                          <span>
-                            Data fase dan broker belum dimuat untuk{" "}
-                            {stock.ticker}.
-                          </span>
-                        </div>
+                .map((stock) => {
+                  const a = analysisMap.get(stock.ticker);
+                  const isAnalyzed = Boolean(a);
+
+                  return (
+                    <tr key={stock.ticker}>
+                      <td className="ticker-cell">
+                        <Link
+                          prefetch={false}
+                          className="text-cyan hover:text-amber font-bold"
+                          href={`/stocks/${stock.ticker}`}
+                        >
+                          {stock.ticker}
+                        </Link>
                       </td>
-                    ) : (
-                      <>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.marketCondition ??
-                            "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.has(stock.ticker)
-                            ? num(
-                                analysisMap.get(stock.ticker)!.coverage * 100,
-                                1,
-                              ) + "%"
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.phaseStart
-                            ? new Date(
-                                analysisMap.get(stock.ticker)!.phaseStart! *
-                                  1000,
-                              )
-                                .toISOString()
-                                .slice(0, 10)
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.phaseDuration ??
-                            "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.priceReturn != null
-                            ? num(
-                                analysisMap.get(stock.ticker)!.priceReturn! *
-                                  100,
-                                2,
-                              ) + "%"
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.topNetBuyer ??
-                            "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.topNetSeller ??
-                            "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.crossingRisk != null
-                            ? num(
-                                analysisMap.get(stock.ticker)!.crossingRisk! *
-                                  100,
-                                1,
-                              ) + "% proxy"
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.brokerAvailable
-                            ? num(
-                                analysisMap
-                                  .get(stock.ticker)
-                                  ?.groups.find(
-                                    (g) =>
-                                      g.classification ===
-                                      "INSTITUTIONAL_ASSOCIATED",
-                                  )?.netLot,
-                              )
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.brokerAvailable
-                            ? num(
-                                analysisMap
-                                  .get(stock.ticker)
-                                  ?.groups.find(
-                                    (g) =>
-                                      g.classification === "RETAIL_ACCESSIBLE",
-                                  )?.netLot,
-                              )
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {analysisMap.get(stock.ticker)?.brokerAvailable
-                            ? num(
-                                analysisMap.get(stock.ticker)
-                                  ?.observedInventoryChange,
-                              )
-                            : "Unavailable"}
-                        </td>
-                        <td>
-                          {num(
-                            analysisMap.get(stock.ticker)?.priceVolume
-                              ?.relativeVolume,
-                            2,
-                          )}
-                        </td>
-                        <td>
-                          {analysisMap
-                            .get(stock.ticker)
-                            ?.alerts.find((a) => a.status === "NEW")?.type ??
-                            (analysisMap.has(stock.ticker)
-                              ? "None detected"
-                              : "Unavailable")}
-                        </td>
-                        <td>
-                          {analysisMap.has(stock.ticker) ? (
-                            <>
-                              {analysisMap
-                                .get(stock.ticker)!
-                                .calculatedAt.slice(0, 16)
-                                .replace("T", " ")}{" "}
-                              UTC
-                              <small className="cell-note">
-                                {renderTime -
-                                  Date.parse(
-                                    analysisMap.get(stock.ticker)!.calculatedAt,
-                                  ) >
-                                900000
-                                  ? "Stale · open to refresh"
-                                  : "Cached"}
-                              </small>
-                            </>
-                          ) : (
-                            "Unavailable"
-                          )}
-                        </td>
-                      </>
-                    )}
-                    <td>
-                      <button
-                        className="button"
-                        disabled={!ready}
-                        aria-label={`${saved.includes(stock.ticker) ? "Remove" : "Save"} ${stock.ticker}`}
-                        onClick={() => toggle(stock.ticker)}
-                      >
-                        {saved.includes(stock.ticker) ? "Saved ✓" : "Save"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="text-slate-300 truncate max-w-[170px]">
+                        {stock.companyName}
+                      </td>
+                      <td>
+                        {isAnalyzed ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white">{a!.label}</span>
+                            <span className="text-[10px] text-amber font-semibold">{a!.confidence}%</span>
+                          </div>
+                        ) : (
+                          <button
+                            className="terminal-btn text-[9px] py-0.2 px-1 text-cyan"
+                            disabled={busy}
+                            onClick={() => analyseStock(stock.ticker)}
+                          >
+                            {loadingTicker === stock.ticker ? "ACQUIRING..." : "ANALYZE"}
+                          </button>
+                        )}
+                      </td>
+                      <td className="tabular-nums text-slate-400">
+                        {isAnalyzed ? `${(a!.coverage * 100).toFixed(0)}%` : "—"}
+                      </td>
+                      <td className="tabular-nums text-slate-300">
+                        {isAnalyzed && a!.phaseStart
+                          ? new Date(a!.phaseStart * 1000).toISOString().slice(0, 10)
+                          : "—"}
+                      </td>
+                      <td className="tabular-nums text-slate-300">
+                        {isAnalyzed ? `${a!.phaseDuration ?? 0} BARS` : "—"}
+                      </td>
+                      <td className="tabular-nums">
+                        {isAnalyzed && a!.priceReturn != null ? (
+                          <span className={a!.priceReturn >= 0 ? "positive font-bold" : "negative font-bold"}>
+                            {a!.priceReturn >= 0 ? "+" : ""}
+                            {(a!.priceReturn * 100).toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
+                      <td className="font-bold text-cyan font-mono">
+                        {isAnalyzed ? a!.topNetBuyer ?? "—" : "—"}
+                      </td>
+                      <td className="font-bold text-red font-mono">
+                        {isAnalyzed ? a!.topNetSeller ?? "—" : "—"}
+                      </td>
+                      <td className="tabular-nums text-slate-300">
+                        {isAnalyzed && a!.crossingRisk != null
+                          ? `${(a!.crossingRisk * 100).toFixed(0)}%`
+                          : "—"}
+                      </td>
+                      <td className="tabular-nums font-semibold text-green">
+                        {isAnalyzed && a!.brokerAvailable
+                          ? num(a!.groups.find((g) => g.classification === "INSTITUTIONAL_ASSOCIATED")?.netLot)
+                          : "—"}
+                      </td>
+                      <td className="tabular-nums font-semibold text-orange">
+                        {isAnalyzed && a!.brokerAvailable
+                          ? num(a!.groups.find((g) => g.classification === "RETAIL_ACCESSIBLE")?.netLot)
+                          : "—"}
+                      </td>
+                      <td className="tabular-nums font-bold text-slate-200">
+                        {isAnalyzed ? num(a!.priceVolume?.relativeVolume, 2) : "—"}x
+                      </td>
+                      <td className="text-slate-300 text-[10px]">
+                        {isAnalyzed
+                          ? a!.alerts.find((al) => al.status === "NEW")?.type ?? "None"
+                          : "—"}
+                      </td>
+                      <td>
+                        <button
+                          className={`terminal-btn text-[9px] py-0.2 px-1 ${saved.includes(stock.ticker) ? "active" : ""}`}
+                          disabled={!ready}
+                          onClick={() => toggle(stock.ticker)}
+                        >
+                          {saved.includes(stock.ticker) ? "SAVED ✓" : "SAVE"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         ) : (
           <EmptyState
-            title={
-              onlySaved ? "No saved matching stocks" : "No matching stocks"
-            }
-            description="Adjust the filters or show all stocks to add to your watchlist."
+            title={onlySaved ? "NO SAVED STOCKS MATCH" : "NO MATCHING SECURITIES"}
+            description="Adjust filters or search parameters to view universe."
           />
         )}
       </div>
-      <div
-        className="chart-caption"
-        style={{ display: "flex", gap: 16, alignItems: "center" }}
-      >
+
+      {/* Pagination Bar */}
+      <div className="filter-toolbar justify-between">
         <button
-          className="button"
+          className="terminal-btn"
           disabled={currentPage === 0}
           onClick={() => setPage(currentPage - 1)}
         >
-          Previous
+          ← PREVIOUS
         </button>
-        <span>
-          Page {currentPage + 1} /{" "}
-          {Math.max(1, Math.ceil(filtered.length / 50))}
+        <span className="text-[10px] text-slate-400 font-semibold">
+          SHOWING PAGE {currentPage + 1} OF {Math.max(1, Math.ceil(filtered.length / 50))} ({filtered.length} TOTAL TICKERS)
         </span>
         <button
-          className="button"
+          className="terminal-btn"
           disabled={(currentPage + 1) * 50 >= filtered.length}
           onClick={() => setPage(currentPage + 1)}
         >
-          Next
+          NEXT →
         </button>
       </div>
-    </>
+    </div>
   );
 }

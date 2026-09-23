@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, CornerDownLeft, ArrowRight } from "lucide-react";
 import type { IdxStock, StockUniverse } from "@/domain/securities";
 
 export function StockSearch() {
@@ -13,6 +13,7 @@ export function StockSearch() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const root = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/stocks", { signal: controller.signal })
@@ -27,6 +28,7 @@ export function StockSearch() {
       });
     return () => controller.abort();
   }, []);
+
   const term = query.trim().toLowerCase();
   const matches = term
     ? stocks
@@ -42,10 +44,11 @@ export function StockSearch() {
             a.ticker.localeCompare(b.ticker),
         )
     : [];
-  const visible = matches.slice(0, 12);
+  const visible = matches.slice(0, 10);
+
   return (
     <div
-      className="stock-search"
+      className="relative w-full"
       ref={root}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
@@ -62,18 +65,20 @@ export function StockSearch() {
               : `/scanner?q=${encodeURIComponent(query.trim())}`,
           );
         }}
+        className="stock-search-prompt"
       >
-        <Search size={16} aria-hidden="true" />
+        <span className="cmd-prefix">&gt; CMD:</span>
         <input
+          className="stock-search-input"
           role="combobox"
-          aria-label="Cari saham atau sektor"
+          aria-label="Search ticker, company, or sector"
           aria-autocomplete="list"
           aria-expanded={open && !!term}
           aria-controls="stock-search-results"
           aria-activedescendant={
             active >= 0 ? `stock-result-${active}` : undefined
           }
-          placeholder="Cari kode, nama saham, atau sektor…"
+          placeholder="SEARCH TICKER, SECTOR OR BROKER..."
           value={query}
           onFocus={() => setOpen(true)}
           onChange={(e) => {
@@ -97,21 +102,28 @@ export function StockSearch() {
             }
           }}
         />
-        <kbd>↵</kbd>
+        <kbd className="kbd-badge" title="Press Enter to execute query">
+          ↵
+        </kbd>
       </form>
+
       {open && term && (
         <div className="stock-search-popover">
-          <p role="status">
-            {status === "error"
-              ? "Direktori belum dapat dimuat. Tekan Enter untuk membuka scanner."
-              : status !== "ready"
-                ? "Memuat daftar saham…"
-                : `${matches.length} saham cocok`}
-          </p>
+          <div className="px-3 py-1.5 bg-slate-950 border-b border-slate-800 text-[10px] text-slate-400 font-mono flex items-center justify-between">
+            <span>
+              {status === "error"
+                ? "DIRECTORY UNAVAILABLE"
+                : status !== "ready"
+                  ? "FETCHING DIRECTORY..."
+                  : `MATCHES: ${matches.length} TICKERS`}
+            </span>
+            <span className="text-amber">[↑↓ TO NAVIGATE · ↵ TO SELECT]</span>
+          </div>
+
           <div
             role="listbox"
             id="stock-search-results"
-            aria-label="Hasil pencarian saham"
+            aria-label="Stock search matches"
           >
             {visible.map((s, i) => (
               <Link
@@ -121,25 +133,37 @@ export function StockSearch() {
                 aria-selected={i === active}
                 href={`/stocks/${s.ticker}`}
                 onClick={() => setOpen(false)}
+                className="hover:bg-slate-900 px-3 py-2 flex items-center justify-between border-b border-slate-900 transition-colors font-mono"
               >
-                <strong>{s.ticker}</strong>
-                <span>
-                  {s.companyName}
-                  <small>{s.sector ?? "Sektor belum tersedia"}</small>
-                </span>
+                <div className="flex items-center gap-3">
+                  <strong className="text-cyan text-xs font-bold w-14">
+                    {s.ticker}
+                  </strong>
+                  <span className="text-slate-300 text-xs truncate max-w-[280px]">
+                    {s.companyName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                  <span>{s.sector ?? "General"}</span>
+                  <ArrowRight size={11} className="text-slate-600" />
+                </div>
               </Link>
             ))}
           </div>
+
           {status === "ready" && !matches.length && (
-            <p>Tidak ada saham yang cocok. Coba kode atau nama lain.</p>
+            <div className="p-3 text-center text-xs text-slate-400 font-mono">
+              NO MATCHING SECURITIES FOUND.
+            </div>
           )}
+
           {!!matches.length && (
             <Link
-              className="search-all"
+              className="block p-2 text-center text-xs font-mono font-bold text-amber hover:bg-slate-900 border-t border-slate-800 transition-colors"
               href={`/scanner?q=${encodeURIComponent(query.trim())}`}
               onClick={() => setOpen(false)}
             >
-              Lihat semua {matches.length} hasil di scanner →
+              EXECUTE FULL UNIVERSE SCAN ({matches.length} RESULTS) →
             </Link>
           )}
         </div>

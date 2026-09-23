@@ -2,8 +2,9 @@
 import { useState } from "react";
 import type { Intelligence } from "@/domain/intelligence";
 import { CORE_PHASES } from "@/domain/intelligence";
-import { PageHeading } from "./ui";
+import { PageHeading, Panel } from "./ui";
 import { AlertList } from "./intelligence-panels";
+
 export function AlertCenter({ analyses }: { analyses: Intelligence[] }) {
   const [q, setQ] = useState(""),
     [type, setType] = useState(""),
@@ -14,9 +15,11 @@ export function AlertCenter({ analyses }: { analyses: Intelligence[] }) {
     [start, setStart] = useState(""),
     [end, setEnd] = useState(""),
     [status, setStatus] = useState("");
+
   const all = analyses
     .flatMap((a) => a.alerts)
     .sort((a, b) => b.timestamp - a.timestamp);
+
   const filtered = all.filter(
     (a) =>
       (!q || a.ticker.includes(q.toUpperCase())) &&
@@ -29,131 +32,133 @@ export function AlertCenter({ analyses }: { analyses: Intelligence[] }) {
       (!start || a.timestamp >= Date.parse(start) / 1000) &&
       (!end || a.timestamp < Date.parse(end) / 1000 + 86400),
   );
+
   return (
-    <>
+    <div className="space-y-2 font-mono">
       <PageHeading
-        title="Alert center"
-        description="Explainable signals from analysed coverage. Historical / batch data; no live-feed claim."
+        eyebrow="FLOWPHASE // SURVEILLANCE FEED"
+        title="MARKET INTELLIGENCE ALERT CENTER"
+        description="Real-time and batch explainable signal triggers across price volume anomalies and broker inventory delta."
       />
-      <div className="phase-map">
-        {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((s) => (
-          <button
-            className="phase-map-item"
-            key={s}
-            onClick={() => setSeverity(severity === s ? "" : s)}
-            aria-pressed={severity === s}
-          >
-            <span>{s}</span>
-            <strong>{all.filter((a) => a.severity === s).length}</strong>
-          </button>
-        ))}
+
+      {/* Severity HUD Buttons */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+        {["LOW", "MEDIUM", "HIGH", "CRITICAL"].map((s) => {
+          const count = all.filter((a) => a.severity === s).length;
+          const isActive = severity === s;
+          return (
+            <button
+              key={s}
+              onClick={() => setSeverity(severity === s ? "" : s)}
+              className={`hud-card text-left transition-all ${
+                isActive ? "border-amber bg-slate-900" : "border-slate-800"
+              }`}
+              style={{
+                borderTop: `2px solid ${
+                  s === "CRITICAL"
+                    ? "var(--red)"
+                    : s === "HIGH"
+                      ? "var(--orange)"
+                      : s === "MEDIUM"
+                        ? "var(--amber)"
+                        : "var(--cyan)"
+                }`,
+              }}
+            >
+              <div className="hud-card-header">
+                <span className="font-bold tracking-wider">{s} SEVERITY</span>
+                <span className="text-[9px] text-slate-500">[FILTER]</span>
+              </div>
+              <div className="hud-card-value">
+                <span className={s === "CRITICAL" ? "text-red" : s === "HIGH" ? "text-orange" : "text-white"}>
+                  {count}
+                </span>
+                <small>ALERTS</small>
+              </div>
+            </button>
+          );
+        })}
       </div>
-      <div className="panel analysis-toolbar">
-        <label>
-          Ticker
-          <input value={q} onChange={(e) => setQ(e.target.value)} />
-        </label>
-        {[
-          {
-            label: "Type",
-            value: type,
-            set: setType,
-            options: [...new Set(all.map((a) => a.type))],
-          },
-          {
-            label: "Broker",
-            value: broker,
-            set: setBroker,
-            options: [
-              ...new Set(
-                all.flatMap((a) => (a.brokerCode ? [a.brokerCode] : [])),
-              ),
-            ],
-          },
-          {
-            label: "Classification",
-            value: group,
-            set: setGroup,
-            options: [
-              "INSTITUTIONAL_ASSOCIATED",
-              "RETAIL_ACCESSIBLE",
-              "MIXED_OR_UNKNOWN",
-            ],
-          },
-          {
-            label: "Phase",
-            value: phase,
-            set: setPhase,
-            options: [...CORE_PHASES, "UNCERTAIN", "TRANSITION"],
-          },
-          {
-            label: "Status",
-            value: status,
-            set: setStatus,
-            options: ["NEW", "EXPIRED"],
-          },
-        ].map((f) => (
-          <label key={f.label}>
-            {f.label}
-            <select value={f.value} onChange={(e) => f.set(e.target.value)}>
-              <option value="">All</option>
-              {f.options.map((o) => (
-                <option key={o}>{o}</option>
+
+      {/* Filter Controls */}
+      <Panel title="[SEC.01 // SURVEILLANCE_CRITERIA_FILTERS]">
+        <div className="filter-toolbar" style={{ margin: 0, border: "none" }}>
+          <div className="filter-group">
+            <span className="filter-label">TICKER:</span>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="ALL TICKERS"
+              className="w-28 text-xs uppercase"
+            />
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">TYPE:</span>
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="">ALL SIGNAL TYPES</option>
+              {[...new Set(all.map((a) => a.type))].map((o) => (
+                <option key={o} value={o}>{o}</option>
               ))}
             </select>
-          </label>
-        ))}
-        <label>
-          From
-          <input
-            type="date"
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-          />
-        </label>
-        <label>
-          To
-          <input
-            type="date"
-            value={end}
-            onChange={(e) => setEnd(e.target.value)}
-          />
-        </label>
-        <button
-          className="button"
-          onClick={() => {
-            setQ("");
-            setType("");
-            setSeverity("");
-            setBroker("");
-            setGroup("");
-            setPhase("");
-            setStart("");
-            setEnd("");
-            setStatus("");
-          }}
-        >
-          Reset
-        </button>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">BROKER:</span>
+            <select value={broker} onChange={(e) => setBroker(e.target.value)}>
+              <option value="">ALL BROKERS</option>
+              {[...new Set(all.flatMap((a) => (a.brokerCode ? [a.brokerCode] : [])))].map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">PHASE:</span>
+            <select value={phase} onChange={(e) => setPhase(e.target.value)}>
+              <option value="">ALL PHASES</option>
+              {[...CORE_PHASES, "UNCERTAIN", "TRANSITION"].map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <span className="filter-label">STATUS:</span>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">ALL</option>
+              <option value="NEW">NEW ONLY</option>
+              <option value="EXPIRED">EXPIRED HISTORICAL</option>
+            </select>
+          </div>
+
+          <button
+            className="terminal-btn"
+            onClick={() => {
+              setQ("");
+              setType("");
+              setSeverity("");
+              setBroker("");
+              setGroup("");
+              setPhase("");
+              setStart("");
+              setEnd("");
+              setStatus("");
+            }}
+          >
+            RESET
+          </button>
+        </div>
+      </Panel>
+
+      <div className="chart-caption flex items-center justify-between">
+        <span>MATCHING ALERTS: {filtered.length} // COVERAGE: {analyses.length} SECURITIES</span>
+        <span className="text-amber">EXPLAINABLE DETERMINISTIC AUDIT</span>
       </div>
-      <p className="chart-caption">
-        {filtered.length} matching alerts · {analyses.length} analysed stocks ·
-        Latest calculation{" "}
-        {analyses
-          .map((a) => a.calculatedAt)
-          .sort()
-          .at(-1) ?? "none"}
-        . NEW means latest analysed session; it does not mean realtime. Older
-        sessions are EXPIRED historical evidence.
-      </p>
-      <div className="panel">
+
+      <div className="panel" style={{ marginBottom: 4 }}>
         <AlertList alerts={filtered} />
       </div>
-      <p className="chart-caption">
-        Stealth detection unavailable: no verified second-level trades. Buy/sell
-        aggressor-volume and free-float turnover alerts are disabled without the
-        required fields.
-      </p>
-    </>
+    </div>
   );
 }
