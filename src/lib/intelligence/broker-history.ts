@@ -50,6 +50,12 @@ const cachedBrokerFetch = unstable_cache(
             averageSell: r.savg_per_share ?? undefined,
             buyFrequency: r.bfreq ?? undefined,
             sellFrequency: r.sfreq ?? undefined,
+            foreignBuyFrequency: r.f_bfreq ?? undefined,
+            foreignSellFrequency: r.f_sfreq ?? undefined,
+            foreignBuyLot: r.f_blot ?? undefined,
+            foreignSellLot: r.f_slot ?? undefined,
+            foreignBuyValue: r.f_bval ?? undefined,
+            foreignSellValue: r.f_sval ?? undefined,
             availableAt: result.fetchedAt,
           });
         }

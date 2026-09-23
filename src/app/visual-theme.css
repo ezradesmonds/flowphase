@@ -476,6 +476,77 @@
   font-family: var(--font-mono);
 }
 
+.research-module-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.research-module-heading h2 {
+  margin: 2px 0 0;
+}
+
+.module-kicker {
+  margin: 0;
+  color: var(--amber);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.broker-summary-cards strong {
+  color: var(--text);
+}
+
+.broker-summary-module tbody tr:hover,
+.holder-module tbody tr:hover {
+  background: color-mix(in srgb, var(--cyan) 7%, transparent);
+}
+
+.positive { color: var(--green) !important; }
+.negative { color: var(--red) !important; }
+
+.broker-disclaimer {
+  padding: 7px 9px;
+  border-left: 2px solid var(--amber);
+  background: color-mix(in srgb, var(--amber) 4%, transparent);
+}
+
+.ownership-intelligence-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.ownership-intelligence-strip > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 10px;
+  background: #060a10;
+}
+
+.ownership-intelligence-strip small {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.ownership-intelligence-strip strong { color: var(--amber); }
+.ownership-intelligence-strip span { color: var(--text-dim); font-size: 10px; }
+
+@media (max-width: 900px) {
+  .ownership-intelligence-strip { grid-template-columns: 1fr; }
+}
+
 /* ── Financial Chart Containers ── */
 .chart-container {
   height: 380px;

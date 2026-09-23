@@ -73,6 +73,12 @@ export interface BrokerFlow {
   sellValue?: number;
   averageBuy?: number;
   averageSell?: number;
+  foreignBuyFrequency?: number;
+  foreignSellFrequency?: number;
+  foreignBuyLot?: number;
+  foreignSellLot?: number;
+  foreignBuyValue?: number;
+  foreignSellValue?: number;
 }
 export interface BrokerInventoryEstimate {
   ticker: string;

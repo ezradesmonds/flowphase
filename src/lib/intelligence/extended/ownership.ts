@@ -33,6 +33,18 @@ const report = z.object({
           }),
         )
         .nullish(),
+      top_transactions: z
+        .object({
+          date: z.iso.date().nullish(),
+          top_buyers: z.array(z.object({ name: z.string(), changeAmount: z.number().finite() })).nullish(),
+          top_sellers: z.array(z.object({ name: z.string(), changeAmount: z.number().finite() })).nullish(),
+        })
+        .nullish(),
+      institutional_transaction_flow: z
+        .array(z.object({ date: z.iso.date(), net_transaction: z.number().finite() }))
+        .nullish(),
+      whale_investors: z.array(z.string()).nullish(),
+      conglomerates_group: z.array(z.string()).nullish(),
     })
     .nullish(),
 });
@@ -178,6 +190,12 @@ export function normalizeOwnership(
     shareholders,
     nodes,
     relations,
+    ownershipIntelligence: {
+      topTransactions: r?.ownership?.top_transactions ?? null,
+      institutionalFlow: r?.ownership?.institutional_transaction_flow ?? [],
+      whaleInvestors: r?.ownership?.whale_investors ?? [],
+      conglomerateGroups: r?.ownership?.conglomerates_group ?? [],
+    },
     unavailable: [
       "total outstanding shares (verified basis)",
       ...(shareholders.some(

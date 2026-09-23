@@ -5,12 +5,14 @@ import { extendedAlerts } from "@/lib/intelligence/extended/alerts";
 import { useState } from "react";
 import type { Intelligence } from "@/domain/intelligence";
 import { BrokerInventoryWorkspace } from "./broker-inventory-workspace";
+import { BrokerSummaryWorkspace } from "./broker-summary-workspace";
+import { HolderWorkspace } from "./holder-workspace";
 import { OwnershipWorkspace } from "./ownership-workspace";
 import { seasonality } from "@/lib/intelligence/extended/market";
 import { positionSize } from "@/lib/intelligence/extended/model";
 import { display, Evidence } from "./research-primitives";
 export function StockResearchTabs({ analysis }: { analysis: Intelligence }) {
-  const [tab, setTab] = useState("Broker Inventory"),
+  const [tab, setTab] = useState("Analisa Broker"),
     [risk, setRisk] = useState(100000),
     [entry, setEntry] = useState(0),
     [stop, setStop] = useState(0),
@@ -24,8 +26,11 @@ export function StockResearchTabs({ analysis }: { analysis: Intelligence }) {
     <div className="research-workspace">
       <nav className="research-tabs" aria-label="Stock research tabs">
         {[
-          "Broker Inventory",
-          "Ownership & Relations",
+          "Analisa Broker",
+          "Broker Summary",
+          "Holder > 1%",
+          "Holder > 5%",
+          "Peta Investor",
           "Institutional Flow",
           "Seasonality",
           "Money & Risk",
@@ -35,10 +40,16 @@ export function StockResearchTabs({ analysis }: { analysis: Intelligence }) {
           </button>
         ))}
       </nav>
-      {tab === "Broker Inventory" ? (
+      {tab === "Analisa Broker" ? (
         <BrokerInventoryWorkspace analysis={analysis} />
-      ) : tab === "Ownership & Relations" ? (
-        <OwnershipWorkspace symbol={analysis.ticker} />
+      ) : tab === "Broker Summary" ? (
+        <BrokerSummaryWorkspace analysis={analysis} />
+      ) : tab === "Holder > 1%" ? (
+        <HolderWorkspace symbol={analysis.ticker} minimumPercentage={1} />
+      ) : tab === "Holder > 5%" ? (
+        <HolderWorkspace symbol={analysis.ticker} minimumPercentage={5} />
+      ) : tab === "Peta Investor" ? (
+        <OwnershipWorkspace symbol={analysis.ticker} initialThreshold={1} />
       ) : tab === "Institutional Flow" ? (
         <>
           <ForeignFlowPanel symbol={analysis.ticker} />

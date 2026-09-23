@@ -4,13 +4,19 @@ import { activeRelation } from "@/lib/intelligence/extended/model";
 import type { normalizeOwnership } from "@/lib/intelligence/extended/ownership";
 import { Value, Evidence, SaveResearch } from "./research-primitives";
 type Ownership = ReturnType<typeof normalizeOwnership>;
-export function OwnershipWorkspace({ symbol }: { symbol: string }) {
+export function OwnershipWorkspace({
+  symbol,
+  initialThreshold = 0,
+}: {
+  symbol: string;
+  initialThreshold?: number;
+}) {
   const [data, setData] = useState<Ownership | null>(null),
     [error, setError] = useState(false),
     [retry, setRetry] = useState(0),
     [selected, setSelected] = useState(""),
     [verified, setVerified] = useState(false),
-    [threshold, setThreshold] = useState(0),
+    [threshold, setThreshold] = useState(initialThreshold),
     [period, setPeriod] = useState("ALL"),
     [view, setView] = useState("Company View"),
     [includeInferred, setIncludeInferred] = useState(false);
@@ -128,6 +134,28 @@ export function OwnershipWorkspace({ symbol }: { symbol: string }) {
           <strong>Unavailable</strong>
         </div>
       </div>
+      {((data.ownershipIntelligence?.whaleInvestors?.length ?? 0) > 0 ||
+        (data.ownershipIntelligence?.conglomerateGroups?.length ?? 0) > 0 ||
+        data.ownershipIntelligence?.topTransactions) && (
+        <div className="ownership-intelligence-strip">
+          <div>
+            <small>Named Whale Investors</small>
+            <strong>{data.ownershipIntelligence?.whaleInvestors?.join(" · ") || "Unavailable"}</strong>
+          </div>
+          <div>
+            <small>Conglomerate Groups</small>
+            <strong>{data.ownershipIntelligence?.conglomerateGroups?.join(" · ") || "Unavailable"}</strong>
+          </div>
+          <div>
+            <small>Latest Institutional Changes</small>
+            <strong>{data.ownershipIntelligence?.topTransactions?.date ?? "Unavailable"}</strong>
+            <span>
+              Buyers: {data.ownershipIntelligence?.topTransactions?.top_buyers?.map((row) => row.name).join(", ") || "Unavailable"}
+              {" · "}Sellers: {data.ownershipIntelligence?.topTransactions?.top_sellers?.map((row) => row.name).join(", ") || "Unavailable"}
+            </span>
+          </div>
+        </div>
+      )}
       <div className="research-filters">
         <label>
           View
