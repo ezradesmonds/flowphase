@@ -98,13 +98,14 @@ describe("period inventory", () => {
       grossBuyLot: 40,
       grossSellLot: 30,
       cumulativeNetLot: 10,
-      peakEstimatedInventory: 40,
-      estimatedRemainingInventory: 10,
-      inventoryReduction: 30,
-      remainingRatio: 0.25,
+      peakEstimatedInventory: null,
+      observedPeakNetLot: 40,
+      estimatedRemainingInventory: null,
+      inventoryReduction: null,
+      remainingRatio: null,
       weightedAverageBuyPrice: 110,
       weightedAverageSellPrice: 110,
-      estimatedMarketValue: 150000,
+      estimatedMarketValue: null,
       startingInventory: "UNKNOWN",
       activeTradingDays: 3,
     });
@@ -119,7 +120,7 @@ describe("period inventory", () => {
       "2026-08-03",
     ).find((r) => r.brokerCode === "XX")!;
     expect(row.cumulativeNetLot).toBe(-15);
-    expect(row.estimatedRemainingInventory).toBe(0);
+    expect(row.estimatedRemainingInventory).toBeNull();
     expect(row.remainingRatio).toBeNull();
     expect(row.netValue).toBeNull();
     expect(row.weightedAverageSellPrice).toBeNull();
@@ -137,8 +138,8 @@ describe("period inventory", () => {
       "2026-08-03",
       "2026-08-03",
     )[0];
-    expect(first.estimatedRemainingInventory).toBe(40);
-    expect(second.estimatedRemainingInventory).toBe(0);
+    expect(first.estimatedRemainingInventory).toBeNull();
+    expect(second.estimatedRemainingInventory).toBeNull();
     expect(second.cumulativeNetLot).toBe(-30);
   });
   it("weights supplied per-share averages when aggregate values are unavailable", () => {
@@ -270,6 +271,9 @@ describe("price-volume and alerts", () => {
 });
 describe("cycles and confirmation", () => {
   const region = (phase: PhaseRegion["phase"], i: number): PhaseRegion => ({
+    marketCondition: phase === "POST_DISTRIBUTION_MARKDOWN" ? phase : "NONE",
+    label:phase,coverage:0.5,dataQualityFactor:1,algorithmVersion:"test",configVersion:"test",
+    scores:{AKUMULASI:0,POMPOM:0,MENGGORENG:0,DISTRIBUSI:0},evidenceItems:[],againstEvidence:[],liquidityBucket:"LOW",changePoint:false,
     id: String(i),
     ticker: "TEST",
     phase,
@@ -288,11 +292,12 @@ describe("cycles and confirmation", () => {
     const c = detectCycles(
       "TEST",
       [
-        "ACCUMULATION",
-        "MARKUP",
-        "DISTRIBUTION",
-        "MARKDOWN",
-        "ACCUMULATION",
+        "AKUMULASI",
+        "POMPOM",
+        "MENGGORENG",
+        "DISTRIBUSI",
+        "POST_DISTRIBUTION_MARKDOWN",
+        "AKUMULASI",
       ].map((p, i) => region(p as PhaseRegion["phase"], i)),
     );
     expect(c.map((v) => v.status)).toEqual(["COMPLETE", "ACTIVE"]);
@@ -300,9 +305,9 @@ describe("cycles and confirmation", () => {
   });
   it("keeps missing phases incomplete instead of synthesizing rectangles", () => {
     const c = detectCycles("TEST", [
-      region("MARKUP", 0),
-      region("MARKDOWN", 1),
-      region("ACCUMULATION", 2),
+      region("POMPOM", 0),
+      region("POST_DISTRIBUTION_MARKDOWN", 1),
+      region("AKUMULASI", 2),
     ]);
     expect(c[0].status).toBe("INCOMPLETE");
     expect(c[0].phases).toHaveLength(2);
@@ -310,12 +315,11 @@ describe("cycles and confirmation", () => {
   it("does not backpaint transition candidates and maintains confirmation start across prefixes", () => {
     const c = candles(60);
     const early = detectPhaseRegions("TEST", "1D", c.slice(0, 22));
-    expect(early).toEqual([]);
+    expect(early[0].phase).toBe("INSUFFICIENT_DATA");
     const confirmed = detectPhaseRegions("TEST", "1D", c.slice(0, 23));
-    expect(confirmed[0].startTimestamp).toBe(c[22].time);
-    expect(detectPhaseRegions("TEST", "1D", c)[0].startTimestamp).toBe(
-      confirmed[0].startTimestamp,
-    );
+    expect(confirmed[0].startTimestamp).toBe(c[0].time);
+    expect(confirmed.filter(r => r.phase === "POMPOM")).toEqual([]);
+
   });
   it("handles no price or broker coverage honestly", () => {
     const result = analyze("TEST", null, {
@@ -326,7 +330,7 @@ describe("cycles and confirmation", () => {
       flows: [],
       unavailableReason: "Unavailable",
     });
-    expect(result.phase).toBe("UNCLASSIFIED");
+    expect(result.phase).toBe("INSUFFICIENT_DATA");
     expect(result.priceVolume).toBeNull();
     expect(result.inventory).toEqual([]);
     expect(result.alerts).toEqual([]);
@@ -364,5 +368,5 @@ it("replay excludes all broker records and alerts after the revealed candle", ()
     broker,
   );
   expect(result.broker.flows.every((f) => f.date <= "2026-08-20")).toBe(true);
-  expect(result.alerts).toEqual([]);
+  expect(result.alerts.every(a => a.timestamp <= prefix.at(-1)!.time)).toBe(true);
 });

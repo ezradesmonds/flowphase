@@ -9,7 +9,7 @@ import { demoRepository } from "./repositories/demo-repository";
 const rows = demoStocks.map((s) => s.scanner);
 describe("demo contracts", () => {
   it("covers all six phases with validated scanner data", () => {
-    expect(new Set(rows.map((r) => r.currentPhase))).toEqual(new Set(PHASES));
+    expect(new Set(rows.map((r) => r.currentPhase))).toEqual(new Set(PHASES.filter(p => !["TRANSITION","INSUFFICIENT_DATA"].includes(p))));
     rows.forEach((r) => expect(scannerSchema.safeParse(r).success).toBe(true));
   });
   it("has valid ordered unique candles and balanced broker counterparties", () => {
@@ -31,7 +31,7 @@ describe("demo contracts", () => {
     }
   });
   it("retains missing values instead of manufacturing coverage", () => {
-    const missing = rows.find((r) => r.currentPhase === "UNCLASSIFIED")!;
+    const missing = rows.find((r) => r.currentPhase === "UNCERTAIN")!;
     expect(missing.relativeVolume).toBeNull();
     expect(missing.remainingInventoryRatio).toBeNull();
   });
@@ -58,7 +58,7 @@ describe("scanner", () => {
     const result = filterScanner(rows, {
       ...defaultFilters,
       query: " BANK ",
-      phase: "ACCUMULATION",
+      phase: "AKUMULASI",
       minimumConfidence: 80,
     });
     expect(result.map((r) => r.ticker)).toEqual(["BBCA"]);
@@ -129,9 +129,10 @@ describe("estimated inventory", () => {
       "2026-01-02",
     );
     expect(r.cumulativeNetLot).toBe(60);
-    expect(r.peakEstimatedInventory).toBe(100);
-    expect(r.estimatedRemainingInventory).toBe(60);
-    expect(r.remainingRatio).toBe(0.6);
+    expect(r.observedPeakNetLot).toBe(100);
+    expect(r.peakEstimatedInventory).toBeNull();
+    expect(r.estimatedRemainingInventory).toBeNull();
+    expect(r.remainingRatio).toBeNull();
   });
   it("clamps displayed inventory while retaining negative signed flow", () => {
     const r = estimateInventory(
@@ -142,8 +143,8 @@ describe("estimated inventory", () => {
       "2026-01-03",
     );
     expect(r.cumulativeNetLot).toBe(-40);
-    expect(r.estimatedRemainingInventory).toBe(0);
-    expect(r.remainingRatio).toBe(0);
+    expect(r.estimatedRemainingInventory).toBeNull();
+    expect(r.remainingRatio).toBeNull();
   });
   it("resets at period boundaries and uses no future data", () => {
     const r = estimateInventory(

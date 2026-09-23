@@ -26,7 +26,11 @@ export async function GET(request: Request) {
 }
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== new URL(request.url).origin)
+  const publicUrl = new URL(request.url);
+  // Next can expose an internal localhost URL while the browser uses 127.0.0.1.
+  // Compare the browser origin with the actual request Host, not forwarded headers.
+  publicUrl.host = request.headers.get("host") ?? publicUrl.host;
+  if (origin && origin !== publicUrl.origin)
     return Response.json(
       { message: "Same-origin requests only." },
       { status: 403 },

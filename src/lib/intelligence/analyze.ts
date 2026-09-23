@@ -1,13 +1,19 @@
 import type { CandleSnapshot } from "@/domain/chart-market";
 import type { BrokerSnapshot } from "@/domain/securities";
 import type { Intelligence } from "@/domain/intelligence";
-import { detectPhaseRegions, classifyCandle } from "@/lib/phases/detect";
+import { detectPhaseRegions } from "@/lib/phases/detect";
+import { ALGORITHM_VERSION, PHASE_CONFIG } from "@/config/phases";
+import { sessionDate } from "@/lib/phases/features";
 import { detectCycles } from "./cycles";
 import { calculateInventory, aggregateGroups } from "./inventory";
 import { priceVolume } from "./price-volume";
-import { brokerAlerts, volumeAlerts } from "./alerts";
-export const sessionDate = (timestamp: number) =>
-  new Date(timestamp * 1000 + 7 * 3600000).toISOString().slice(0, 10);
+import {
+  brokerAlerts,
+  volumeAlerts,
+  phaseAlerts,
+  featureAlerts,
+} from "./alerts";
+export { sessionDate } from "@/lib/phases/features";
 export function analyze(
   ticker: string,
   snapshot: CandleSnapshot | null,
@@ -16,106 +22,99 @@ export function analyze(
 ): Intelligence {
   const candles = snapshot?.candles ?? [],
     last = candles.at(-1);
-  const cutoff = last
-    ? sessionDate(last.time - (snapshot?.timeframe === "1D" ? 0 : 86400))
-    : broker.end;
+  const cutoff = last ? sessionDate(last.time) : broker.end;
   broker = {
     ...broker,
-    flows: broker.flows.filter((f) => f.date <= cutoff),
+    flows: broker.flows.filter(
+      (f) =>
+        f.date <= cutoff &&
+        !!f.availableAt &&
+        Date.parse(f.availableAt) <= Date.parse(now),
+    ),
     end: broker.end < cutoff ? broker.end : cutoff,
   };
-  const cycles = detectCycles(
+  const regions = detectPhaseRegions(
     ticker,
-    detectPhaseRegions(ticker, snapshot?.timeframe ?? "1D", candles),
+    snapshot?.timeframe ?? "1D",
+    candles,
+    { flows: broker.flows, strictAvailability: true, asOf: now },
   );
-  for (const cycle of cycles) {
-    for (const region of cycle.phases) {
-      const start = sessionDate(region.startTimestamp),
-        end = sessionDate(region.endTimestamp);
-      const days = [...new Set(broker.flows.map((f) => f.date))].sort();
-      if (
-        snapshot?.timeframe !== "1D" ||
-        !days.length ||
-        start < days[0] ||
-        end > days.at(-1)!
+  const stale = last
+    ? Math.max(
+        0,
+        (Date.parse(now) - last.time * 1000) / 86400000 -
+          PHASE_CONFIG.staleAfterDays,
       )
-        continue;
-      const rows = calculateInventory(broker.flows, ticker, start, end);
-      const group = aggregateGroups(rows).find(
-        (g) => g.classification === "INSTITUTIONAL_ASSOCIATED",
-      );
-      const supports =
-        group &&
-        (region.phase === "ACCUMULATION" || region.phase === "MARKUP"
-          ? group.netLot > 0
-          : group.netLot < 0);
-      if (supports) {
-        region.brokerEvidence = "BROKER_SUPPORTED";
-        region.evidence.push(
-          `Institutional-associated broker proxy net flow ${group.netLot.toFixed(0)} lots over available reported dates; heuristic classification, not ownership.`,
-        );
-      }
+    : Infinity;
+  for (const r of regions) {
+    if (r.active && stale > 0) {
+      const factor = 1 / (1 + stale / 7);
+      r.confidence = Math.round(r.confidence * factor);
+      r.dataQualityFactor *= factor;
+      r.warnings.push("Stale source data reduces confidence.");
     }
+  }
+  const cycles = detectCycles(ticker, regions);
+  for (const cycle of cycles)
     if (cycle.phases.every((r) => r.brokerEvidence === "BROKER_SUPPORTED"))
       cycle.evidenceStatus = "BROKER_SUPPORTED";
-  }
-  const regions = cycles.flatMap((c) => c.phases),
-    latest = regions.at(-1);
-  const phase =
-    latest && last && latest.endTimestamp === last.time
-      ? latest.phase
-      : classifyCandle(candles, candles.length - 1).phase === "UNCLASSIFIED"
-        ? "UNCLASSIFIED"
-        : "TRANSITION";
-  // Never label a partial broker window as inventory since an earlier cycle start.
-  const cycleStart = cycles.at(-1)?.startTimestamp;
-  const start = cycleStart
-    ? sessionDate(cycleStart) > broker.start
-      ? sessionDate(cycleStart)
-      : broker.start
-    : broker.start;
-  const end =
-    last && sessionDate(last.time) < broker.end
-      ? sessionDate(last.time)
-      : broker.end;
+  const finalRegions = cycles.flatMap((c) => c.phases),
+    latest = finalRegions.at(-1);
   const inventory = calculateInventory(
     broker.flows,
     ticker,
-    start,
-    end,
+    broker.start,
+    broker.end,
     last?.close ?? null,
   );
+  const state = latest?.phase ?? "INSUFFICIENT_DATA";
+  const marketCondition = latest?.marketCondition ?? "NONE";
   const alerts = [
     ...volumeAlerts(ticker, candles),
     ...brokerAlerts(ticker, broker.flows),
+    ...phaseAlerts(ticker, finalRegions),
+    ...featureAlerts(ticker, candles, {
+      flows: broker.flows,
+      strictAvailability: true,
+      asOf: now,
+    }),
   ]
+    .filter((a) => a.timestamp * 1000 <= Date.parse(now))
     .sort((a, b) => b.timestamp - a.timestamp)
     .map((a) => {
       const date = sessionDate(a.timestamp),
-        r = regions.find(
+        region = finalRegions.find(
           (r) =>
             sessionDate(r.startTimestamp) <= date &&
             sessionDate(r.endTimestamp) >= date,
         );
       return {
         ...a,
-        phase: r?.phase ?? ("UNCLASSIFIED" as const),
-        status: (date < (last ? sessionDate(last.time) : broker.end)
-          ? "EXPIRED"
-          : "NEW") as "EXPIRED" | "NEW",
+        phase: region?.phase ?? ("INSUFFICIENT_DATA" as const),
+        status:
+          date < (last ? sessionDate(last.time) : broker.end)
+            ? ("EXPIRED" as const)
+            : ("NEW" as const),
       };
     });
   return {
-    version: 1,
+    version: 2,
+    algorithmVersion: ALGORITHM_VERSION,
+    configVersion: PHASE_CONFIG.version,
     ticker,
     calculatedAt: now,
     candles: snapshot,
     broker,
-    regions,
+    regions: finalRegions,
     cycles,
-    phase,
-    confidence:
-      latest?.endTimestamp === last?.time ? (latest?.confidence ?? 0) : 0,
+    state,
+    phase:
+      marketCondition === "POST_DISTRIBUTION_MARKDOWN" ? "TRANSITION" : state,
+    marketCondition,
+    confidence: latest?.confidence ?? 0,
+    coverage: latest?.coverage ?? 0,
+    dataQualityFactor: latest?.dataQualityFactor ?? 0,
+    historyStatus: `All ${candles.length} available loaded bars analysed; upstream lifetime completeness unverified. Broker period ${broker.start} to ${broker.end}.`,
     priceVolume: priceVolume(candles),
     inventory,
     groups: aggregateGroups(inventory),
@@ -123,12 +122,14 @@ export function analyze(
     warnings: [
       ...(!snapshot ? ["TradingView candles unavailable."] : []),
       ...(broker.unavailableReason ? [broker.unavailableReason] : []),
-      ...(cycleStart && sessionDate(cycleStart) < broker.start
+      "Opening inventory: Unknown. Observed net change is not absolute holdings.",
+      "Historical broker publication times are not established by an API backfill. Strict replay uses only recorded availableAt timestamps.",
+      "Order-book data unavailable; tick, split-execution and narrative features disabled.",
+      ...(stale > 0
         ? [
-            "Broker history starts after the cycle: inventory covers available period only.",
+            "Latest price snapshot is stale; current-market claims are not supported.",
           ]
         : []),
-      "Starting holdings are unknown; estimated inventory is cumulative positive net flow, not beneficial ownership.",
     ],
   };
 }

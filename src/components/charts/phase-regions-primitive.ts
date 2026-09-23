@@ -24,7 +24,7 @@ export class PhaseRegionsPrimitive implements ISeriesPrimitive {
         ctx.rect(0, 0, mediaSize.width, mediaSize.height);
         ctx.clip();
         for (const region of this.regions) {
-          if (region.phase === "UNCLASSIFIED") continue;
+          if (region.phase === "INSUFFICIENT_DATA") continue;
           const x1 = scale.timeToCoordinate(
             region.startTimestamp as UTCTimestamp,
           );
@@ -64,7 +64,7 @@ export class PhaseRegionsPrimitive implements ISeriesPrimitive {
           ctx.clip();
           ctx.font = "10px Arial";
           ctx.textBaseline = "top";
-          const text = `${style.label} · ${region.confidence}%${region.active ? " · Active" : ""}${region.tags?.includes("EUPHORIA_RISK") ? " · ⚠" : ""}`;
+          const text = `${region.label || style.label} · ${region.confidence}%${region.active ? " · Active" : ""}`;
           const labelWidth = Math.min(width, ctx.measureText(text).width + 6);
           ctx.fillStyle = "rgba(18, 24, 34, 0.75)";
           ctx.fillRect(labelLeft, labelTop, labelWidth, 13);

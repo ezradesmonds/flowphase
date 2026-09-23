@@ -1,0 +1,38 @@
+{
+  "purpose": "Schema example only; never production data. Arrays truncated to two records; nonessential text omitted.",
+  "metadata": {
+    "capability": "stockUniverse",
+    "endpoint": "/companies/?limit=1&offset=0&order_by=symbol",
+    "ticker": "BBCA",
+    "capturedAt": "2026-09-21T11:30:18.352Z",
+    "status": "VERIFIED_BUT_LIMITED",
+    "httpStatus": 200,
+    "pagination": {
+      "total_count": 962,
+      "offset": 0,
+      "has_next": true,
+      "next_offset": 1
+    },
+    "notes": [
+      "Only two one-record pages sampled; full-universe completeness is not live-verified."
+    ]
+  },
+  "payload": {
+    "results": [
+      {
+        "symbol": "AADI.JK",
+        "company_name": "[TEXT OMITTED]"
+      }
+    ],
+    "pagination": {
+      "total_count": 962,
+      "showing": 1,
+      "limit": 1,
+      "offset": 0,
+      "has_next": true,
+      "has_previous": false,
+      "next_offset": 1,
+      "previous_offset": null
+    }
+  }
+}

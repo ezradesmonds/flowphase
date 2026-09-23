@@ -11,18 +11,23 @@ export function detectCycles(
     let cycle = cycles.at(-1);
     if (
       !cycle ||
-      (region.phase === "ACCUMULATION" &&
+      (region.phase === "AKUMULASI" &&
         cycle.phases.some(
-          (p) => p.phase === "MARKDOWN" || p.phase === "DISTRIBUTION",
+          (p) => p.marketCondition === "POST_DISTRIBUTION_MARKDOWN",
         ))
     ) {
       if (cycle) {
         cycle.endTimestamp = cycle.phases.at(-1)!.endTimestamp;
         const order = cycle.phases
+          .filter((p) =>
+            ["AKUMULASI", "POMPOM", "MENGGORENG", "DISTRIBUSI"].includes(
+              p.phase,
+            ),
+          )
           .map((p) => p.phase)
           .filter((p, i, a) => !i || p !== a[i - 1]);
         cycle.status =
-          order.join(",") === "ACCUMULATION,MARKUP,DISTRIBUTION,MARKDOWN"
+          order.join(",") === "AKUMULASI,POMPOM,MENGGORENG,DISTRIBUSI"
             ? "COMPLETE"
             : "INCOMPLETE";
       }

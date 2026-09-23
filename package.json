@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "sectors:diagnose": "node --conditions=react-server --experimental-strip-types scripts/sectors-diagnose.mjs",
     "check:public-files": "node scripts/check-public-files.mjs",
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",

@@ -1,8 +1,18 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-const files = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" })
-  .split("\0")
-  .filter(Boolean);
+import env from "@next/env";
+env.loadEnvConfig(process.cwd(), false, { info() {}, error() {} });
+const files = [
+  ...new Set(
+    execFileSync(
+      "git",
+      ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+      { encoding: "utf8" },
+    )
+      .split("\0")
+      .filter(Boolean),
+  ),
+];
 const blocked = [];
 const localSecrets = [
   process.env.SECTORS_API_KEY,
@@ -37,5 +47,5 @@ if (blocked.length) {
   process.exit(1);
 }
 console.log(
-  `Checked ${files.length} tracked files. No prohibited secret/build files or common private-key tokens detected. This is not a comprehensive secret audit.`,
+  `Checked ${files.length} tracked and non-ignored untracked files against locally loaded secrets. No prohibited secret/build files or common private-key tokens detected. This is not a comprehensive secret audit.`,
 );

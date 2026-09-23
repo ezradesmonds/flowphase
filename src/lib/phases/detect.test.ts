@@ -1,149 +1,103 @@
 import { describe, expect, it } from "vitest";
+import { classifyCandle, detectPhaseRegions, scoreFrame } from "./detect";
+import { buildFeatureFrames, type FeatureFrame } from "./features";
+import { PHASE_CONFIG, PRIMARY_PHASES, type FeatureKey } from "@/config/phases";
 import type { MarketCandle } from "@/domain/chart-market";
-import { classifyCandle, detectPhaseRegions } from "./detect";
-function trend(direction = 1, count = 65): MarketCandle[] {
-  return Array.from({ length: count }, (_, i) => {
-    const close = 200 + direction * i;
-    return {
-      time: 1700000000 + i * 60,
-      open: close - direction * 0.5,
-      high: close + 0.7,
-      low: close - 0.7,
-      close,
-      volume: 100,
-    };
-  });
+const candles = (n=100): MarketCandle[] => Array.from({length:n},(_,i)=>({time:1700000000+i*86400,open:100,high:102,low:98,close:100+(i%2?0.2:-0.2),volume:100+i%7}));
+function frame(): FeatureFrame {
+ const f=buildFeatureFrames(candles()).at(-1)!;
+ return {...f,sufficient:true,brokerAvailable:true,brokerCoverage:1,quality:1,crossingRisk:0,positiveSlope:true,controlled:true,priceReturn:0.01,rangeExpansion:2,previousAccumulatorSelling:true,
+ features:Object.fromEntries(Object.keys(f.features).map(k=>[k,0])) as FeatureFrame["features"]};
 }
-function range(positive: boolean): MarketCandle[] {
-  return Array.from({ length: 60 }, (_, i) => ({
-    time: 1700000000 + i * 60,
-    open: 100,
-    high: 102,
-    low: 98,
-    close: 100 + (positive ? 1 : -1) + (i % 2 ? 0.1 : -0.1),
-    volume: 100,
-  }));
+function support(phase: typeof PRIMARY_PHASES[number]) {
+ const f=frame();
+ for(const key of Object.keys(PHASE_CONFIG.weights[phase])) f.features[key as FeatureKey]=100;
+ f.features.narrative=null;
+ return f;
 }
-describe("OHLCV phase detection", () => {
-  it("detects four phases with euphoria as a markup risk tag from candle behavior", () => {
-    expect(detectPhaseRegions("AAA", "1D", trend())[0].phase).toBe("MARKUP");
-    expect(detectPhaseRegions("AAA", "1D", trend(-1))[0].phase).toBe(
-      "MARKDOWN",
-    );
-    expect(detectPhaseRegions("AAA", "1D", range(true))[0].phase).toBe(
-      "ACCUMULATION",
-    );
-    expect(detectPhaseRegions("AAA", "1D", range(false))[0].phase).toBe(
-      "DISTRIBUTION",
-    );
-    const euphoric = trend().map((c, i) => ({
-      ...c,
-      volume: i < 40 ? 100 : 100 * 1.3 ** (i - 39),
-    }));
-    expect(
-      detectPhaseRegions("AAA", "1D", euphoric).some(
-        (r) => r.phase === "MARKUP" && r.tags?.includes("EUPHORIA_RISK"),
-      ),
-    ).toBe(true);
+describe("corrected phase semantics",()=>{
+ it.each(PRIMARY_PHASES)("scores distinct %s evidence",phase=>expect(scoreFrame(support(phase)).phase).toBe(phase));
+ it("distribution occurs with rising price when earlier accumulators release stock",()=>{
+  const f=support("DISTRIBUSI");f.priceReturn=0.08;f.positiveSlope=true;
+  expect(scoreFrame(f).phase).toBe("DISTRIBUSI");
+ });
+ it("falling price alone proves neither distribution nor post-distribution markdown",()=>{
+  const c=candles().map((b,i)=>({...b,open:200-i,high:202-i,low:198-i,close:200-i}));
+  expect(detectPhaseRegions("TEST","1D",c).some(r=>r.phase==="POST_DISTRIBUTION_MARKDOWN")).toBe(false);
+  const f=frame();f.priceReturn=-0.1;f.positiveSlope=false;
+  expect(scoreFrame(f).phase).toBe("UNCERTAIN");
+ });
+ it("pompom is attention evidence, never proof of promotion",()=>{
+  const f=support("POMPOM");f.priceReturn=0.005;
+  const r=scoreFrame(f);expect(r.label).toBe("POMPOM CANDIDATE — market-attention proxy only");
+  expect(r.againstEvidence.some(e=>e.feature==="narrative"&&e.status==="UNAVAILABLE")).toBe(true);
+ });
+ it("high gross crossing cannot confirm accumulation",()=>{
+  const f=support("AKUMULASI");f.crossingRisk=0.99;
+  expect(scoreFrame(f).phase).not.toBe("AKUMULASI");
+ });
+ it("close scores produce transition and weak scores uncertain",()=>{
+  const f=support("POMPOM");
+  for(const k of Object.keys(PHASE_CONFIG.weights.MENGGORENG))f.features[k as FeatureKey]=100;
+  expect(scoreFrame(f).phase).toBe("TRANSITION");
+  expect(scoreFrame(frame()).phase).toBe("UNCERTAIN");
+ });
+ it("OHLCV-only candidates have capped confidence and no smart-money claim",()=>{
+  for(const r of detectPhaseRegions("TEST","1D",candles())){
+   expect(r.confidence).toBeLessThanOrEqual(35);
+   if(PRIMARY_PHASES.includes(r.phase as typeof PRIMARY_PHASES[number]))expect(r.label).toContain("Price-Volume Phase Candidate");
+  }
+ });
+ it("short and zero-volume history explicitly reports insufficient data",()=>{
+  expect(detectPhaseRegions("TEST","1D",candles(10))[0].phase).toBe("INSUFFICIENT_DATA");
+  expect(detectPhaseRegions("TEST","1D",candles().map(c=>({...c,volume:0}))).every(r=>r.phase==="INSUFFICIENT_DATA")).toBe(true);
+ });
+ it("regions preserve timestamps and exact segment price extrema",()=>{
+  const c=candles(),copy=structuredClone(c),regions=detectPhaseRegions("TEST","1D",c);
+  for(const r of regions){
+   const bars=c.filter(b=>b.time>=r.startTimestamp&&b.time<=r.endTimestamp);
+   expect(r.lowPrice).toBe(Math.min(...bars.map(b=>b.low)));
+   expect(r.highPrice).toBe(Math.max(...bars.map(b=>b.high)));
+   expect(r.startTimestamp).toBeLessThanOrEqual(r.endTimestamp);
+   expect(r.algorithmVersion).toBeTruthy();
+  }
+  expect(c).toEqual(copy);
+ });
+ it("decisions and completed segments do not use future bars",()=>{
+  const c=candles();
+  expect(classifyCandle(c,40)).toEqual(classifyCandle(c.slice(0,41),40));
+  const full=detectPhaseRegions("TEST","1D",c);
+  for(let i=25;i<c.length;i+=10){
+   const prefix=detectPhaseRegions("TEST","1D",c.slice(0,i+1));
+   expect(prefix.at(-1)!.phase).toBe(full.find(r=>r.startTimestamp<=c[i].time&&r.endTimestamp>=c[i].time)!.phase);
+  }
+ });
+ it("rejects malformed or unordered candles",()=>{
+  expect(detectPhaseRegions("TEST","1D",candles().reverse())).toEqual([]);
+  expect(detectPhaseRegions("TEST","1D",candles().map(c=>({...c,volume:NaN})))).toEqual([]);
+ });
+ it("excludes unpublished broker data in strict point-in-time mode",()=>{
+  const c=candles();const flows=[{ticker:"TEST",date:"2023-11-14",brokerCode:"AI",buyLot:100,sellLot:0,availableAt:"2099-01-01"}];
+  expect(buildFeatureFrames(c,{flows,strictAvailability:true}).every(f=>!f.brokerAvailable)).toBe(true);
+ });
+ it("confirms distribution before a decline and separates the later markdown region",()=>{
+  const c=candles(110).map((b,i)=>{
+   const close=i<70 ? 100+(i%2?0.2:-0.2) : i<90 ? 100+(i-70)*0.2 : 102-(i-90)*2;
+   return {...b,open:close-0.1,close,high:close+1,low:close-1,volume:i<70?100+i%7:500+i%9};
   });
-  it("leaves short, flat, no-volume and ambiguous inputs uncolored", () => {
-    expect(detectPhaseRegions("AAA", "1", trend(1, 22))).toEqual([]);
-    expect(
-      detectPhaseRegions(
-        "AAA",
-        "1",
-        trend().map((c) => ({ ...c, volume: 0 })),
-      ),
-    ).toEqual([]);
-    expect(
-      detectPhaseRegions(
-        "AAA",
-        "1",
-        range(true).map((c) => ({ ...c, close: 100 })),
-      ),
-    ).toEqual([]);
+  const flows=c.flatMap((b,i)=>{
+   const date=new Date(b.time*1000).toISOString().slice(0,10);
+   const selling=i>=70;
+   return [{ticker:"TEST",date,brokerCode:"AI",buyLot:selling?0:100,sellLot:selling?300:0},
+    ...["XL","XC","YP","PD","KK"].map(brokerCode=>({ticker:"TEST",date,brokerCode,buyLot:selling?60:0,sellLot:selling?0:20}))];
   });
-  it("uses actual timestamps and price bounds, with distinct ticker/timeframe identities", () => {
-    const candles = trend();
-    const before = structuredClone(candles);
-    const regions = detectPhaseRegions("bbca", "15", candles);
-    const region = regions[0];
-    const bars = candles.filter(
-      (c) => c.time >= region.startTimestamp && c.time <= region.endTimestamp,
-    );
-    expect(region).toMatchObject({
-      ticker: "BBCA",
-      status: "CALCULATED",
-      startTimestamp: candles[22].time,
-      endTimestamp: candles.at(-1)!.time,
-      lowPrice: Math.min(...bars.map((c) => c.low)),
-      highPrice: Math.max(...bars.map((c) => c.high)),
-      startPrice: bars[0].open,
-      endPrice: bars.at(-1)!.close,
-    });
-    expect(region.confidence).toBeGreaterThanOrEqual(50);
-    expect(region.confidence).toBeLessThanOrEqual(95);
-    expect(region.id).not.toBe(detectPhaseRegions("TLKM", "15", candles)[0].id);
-    expect(region.id).not.toBe(detectPhaseRegions("BBCA", "1D", candles)[0].id);
-    expect(candles).toEqual(before);
-  });
-  it("classifies each bar without future candles and is price-scale invariant", () => {
-    const candles = trend();
-    expect(classifyCandle(candles, 35)).toEqual(
-      classifyCandle(candles.slice(0, 36), 35),
-    );
-    const scaled = candles.map((c) => ({
-      ...c,
-      open: c.open * 100,
-      high: c.high * 100,
-      low: c.low * 100,
-      close: c.close * 100,
-    }));
-    expect(detectPhaseRegions("AAA", "1", scaled).map((r) => r.phase)).toEqual(
-      detectPhaseRegions("AAA", "1", candles).map((r) => r.phase),
-    );
-  });
-  it("recalculates on updates and rejects invalid or out-of-order snapshots", () => {
-    const candles = trend();
-    const old = detectPhaseRegions("AAA", "1", candles.slice(0, -1));
-    const next = detectPhaseRegions("AAA", "1", candles);
-    expect(old[0].id).toBe(next[0].id);
-    expect(old[0].endTimestamp).toBeLessThan(next[0].endTimestamp);
-    expect(detectPhaseRegions("AAA", "1", [...candles].reverse())).toEqual([]);
-    expect(
-      detectPhaseRegions(
-        "AAA",
-        "1",
-        candles.map((c) => ({ ...c, volume: NaN })),
-      ),
-    ).toEqual([]);
-  });
-  it("does not merge classified runs across unclassified gaps", () => {
-    const candles = [
-      ...trend(),
-      ...Array.from({ length: 30 }, (_, i) => ({
-        time: 1700000000 + (65 + i) * 60,
-        open: 264,
-        high: 265,
-        low: 263,
-        close: 264,
-        volume: 100,
-      })),
-      ...trend(1, 50).map((c, i) => ({
-        ...c,
-        time: 1700000000 + (95 + i) * 60,
-        open: c.open + 64,
-        high: c.high + 64,
-        low: c.low + 64,
-        close: c.close + 64,
-      })),
-    ];
-    const regions = detectPhaseRegions("AAA", "1", candles);
-    expect(regions.length).toBeGreaterThan(1);
-    expect(regions.every((r) => r.phase !== "UNCLASSIFIED")).toBe(true);
-    for (let i = 1; i < regions.length; i++)
-      expect(regions[i].startTimestamp).toBeGreaterThan(
-        regions[i - 1].endTimestamp,
-      );
-  });
+  const regions=detectPhaseRegions("TEST","1D",c,{flows});
+  const distribution=regions.find(r=>r.phase==="DISTRIBUSI");
+  expect(distribution).toBeDefined();
+  expect(distribution!.startTimestamp).toBeLessThan(c[90].time);
+  const markdown=regions.find(r=>r.phase==="POST_DISTRIBUTION_MARKDOWN");
+  expect(markdown).toBeDefined();
+  expect(markdown!.marketCondition).toBe("POST_DISTRIBUTION_MARKDOWN");
+  expect(markdown!.startTimestamp).toBeGreaterThan(distribution!.startTimestamp);
+ });
 });

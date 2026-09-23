@@ -1,0 +1,1730 @@
+{
+  "generatedAt": "2026-09-21T11:30:18.348Z",
+  "ticker": "BBCA",
+  "minimumEndpoint": "stockUniverse",
+  "exitCode": 0,
+  "results": [
+    {
+      "capability": "stockUniverse",
+      "endpoint": "/companies/?limit=1&offset=0&order_by=symbol",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/screener/companies",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:18.352Z",
+      "status": "VERIFIED_BUT_LIMITED",
+      "httpStatus": 200,
+      "latencyMs": 919,
+      "recordCount": 1,
+      "earliestTimestamp": null,
+      "latestTimestamp": null,
+      "fields": {
+        "results[].symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "results[].company_name": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "pagination.total_count": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.showing": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.limit": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.offset": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.has_next": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["boolean"]
+        },
+        "pagination.has_previous": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["boolean"]
+        },
+        "pagination.next_offset": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.previous_offset": {
+          "present": 1,
+          "nonNull": 0,
+          "types": ["null"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 916,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [
+        "Only two one-record pages sampled; full-universe completeness is not live-verified."
+      ],
+      "reportedYears": [],
+      "timestampsByField": {},
+      "pagination": {
+        "total_count": 962,
+        "offset": 0,
+        "has_next": true,
+        "next_offset": 1
+      }
+    },
+    {
+      "capability": "universePagination",
+      "endpoint": "/companies/?limit=1&offset=1&order_by=symbol",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/screener/companies",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:19.576Z",
+      "status": "VERIFIED_BUT_LIMITED",
+      "httpStatus": 200,
+      "latencyMs": 281,
+      "recordCount": 1,
+      "earliestTimestamp": null,
+      "latestTimestamp": null,
+      "fields": {
+        "results[].symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "results[].company_name": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "pagination.total_count": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.showing": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.limit": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.offset": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.has_next": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["boolean"]
+        },
+        "pagination.has_previous": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["boolean"]
+        },
+        "pagination.next_offset": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "pagination.previous_offset": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 281,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [
+        "Only two one-record pages sampled; full-universe completeness is not live-verified."
+      ],
+      "reportedYears": [],
+      "timestampsByField": {},
+      "pagination": {
+        "total_count": 962,
+        "offset": 1,
+        "has_next": true,
+        "next_offset": 2
+      }
+    },
+    {
+      "capability": "dailyOhlcv",
+      "endpoint": "/daily/BBCA/?start=2026-09-07&end=2026-09-20",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/transaction/daily",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:20.169Z",
+      "status": "VERIFIED_WORKING",
+      "httpStatus": 200,
+      "latencyMs": 280,
+      "recordCount": 10,
+      "earliestTimestamp": "2026-09-07",
+      "latestTimestamp": "2026-09-18",
+      "fields": {
+        "[].symbol": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["string"]
+        },
+        "[].date": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["string"]
+        },
+        "[].close": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "[].open": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "[].high": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "[].low": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "[].volume": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "[].market_cap": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 272,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [],
+      "reportedYears": [],
+      "timestampsByField": {
+        "[].date": {
+          "earliest": "2026-09-07",
+          "latest": "2026-09-18"
+        }
+      }
+    },
+    {
+      "capability": "brokerSummary",
+      "endpoint": "/broker-summary/BBCA/?start=2026-09-07&end=2026-09-20",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/brokers/broker-summary-by-symbol",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:20.760Z",
+      "status": "VERIFIED_WORKING",
+      "httpStatus": 200,
+      "latencyMs": 450,
+      "recordCount": 694,
+      "earliestTimestamp": "2026-09-07",
+      "latestTimestamp": "2026-09-18",
+      "fields": {
+        "symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "start": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "end": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "data[].date": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["string"]
+        },
+        "data[].summary[].broker_code": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["string"]
+        },
+        "data[].summary[].bfreq": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].blot": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].bval": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].bavg_per_share": {
+          "present": 694,
+          "nonNull": 653,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].sfreq": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].slot": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].sval": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].savg_per_share": {
+          "present": 694,
+          "nonNull": 527,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].nlot": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].nval": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].navg_per_share": {
+          "present": 694,
+          "nonNull": 694,
+          "types": ["number"]
+        },
+        "data[].summary[].f_bfreq": {
+          "present": 694,
+          "nonNull": 215,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_blot": {
+          "present": 694,
+          "nonNull": 215,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_bval": {
+          "present": 694,
+          "nonNull": 215,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_bavg_per_share": {
+          "present": 694,
+          "nonNull": 197,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].d_bavg_per_share": {
+          "present": 694,
+          "nonNull": 619,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_sfreq": {
+          "present": 694,
+          "nonNull": 215,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_slot": {
+          "present": 694,
+          "nonNull": 215,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_sval": {
+          "present": 694,
+          "nonNull": 215,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_savg_per_share": {
+          "present": 694,
+          "nonNull": 149,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].d_savg_per_share": {
+          "present": 694,
+          "nonNull": 493,
+          "types": ["number", "null"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 438,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [],
+      "reportedYears": [],
+      "timestampsByField": {
+        "data[].date": {
+          "earliest": "2026-09-07",
+          "latest": "2026-09-18"
+        }
+      }
+    },
+    {
+      "capability": "historicalBrokerSummary",
+      "endpoint": "/broker-summary/BBCA/?start=2026-08-24&end=2026-09-06",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/brokers/broker-summary-by-symbol",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:21.514Z",
+      "status": "VERIFIED_WORKING",
+      "httpStatus": 200,
+      "latencyMs": 494,
+      "recordCount": 542,
+      "earliestTimestamp": "2026-08-24",
+      "latestTimestamp": "2026-09-04",
+      "fields": {
+        "symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "start": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "end": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "data[].date": {
+          "present": 9,
+          "nonNull": 9,
+          "types": ["string"]
+        },
+        "data[].summary[].broker_code": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["string"]
+        },
+        "data[].summary[].bfreq": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].blot": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].bval": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].bavg_per_share": {
+          "present": 542,
+          "nonNull": 442,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].sfreq": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].slot": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].sval": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].savg_per_share": {
+          "present": 542,
+          "nonNull": 493,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].nlot": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].nval": {
+          "present": 542,
+          "nonNull": 542,
+          "types": ["number"]
+        },
+        "data[].summary[].navg_per_share": {
+          "present": 542,
+          "nonNull": 541,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_bfreq": {
+          "present": 542,
+          "nonNull": 174,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_blot": {
+          "present": 542,
+          "nonNull": 174,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_bval": {
+          "present": 542,
+          "nonNull": 174,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_bavg_per_share": {
+          "present": 542,
+          "nonNull": 134,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].d_bavg_per_share": {
+          "present": 542,
+          "nonNull": 416,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_sfreq": {
+          "present": 542,
+          "nonNull": 174,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_slot": {
+          "present": 542,
+          "nonNull": 174,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_sval": {
+          "present": 542,
+          "nonNull": 174,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].f_savg_per_share": {
+          "present": 542,
+          "nonNull": 152,
+          "types": ["number", "null"]
+        },
+        "data[].summary[].d_savg_per_share": {
+          "present": 542,
+          "nonNull": 469,
+          "types": ["number", "null"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 486,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [],
+      "reportedYears": [],
+      "timestampsByField": {
+        "data[].date": {
+          "earliest": "2026-08-24",
+          "latest": "2026-09-04"
+        }
+      }
+    },
+    {
+      "capability": "foreignFlow",
+      "endpoint": "/foreign-flow/BBCA/?start=2026-09-07&end=2026-09-20",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/brokers/foreign-flow-by-symbol",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:22.313Z",
+      "status": "VERIFIED_WORKING",
+      "httpStatus": 200,
+      "latencyMs": 261,
+      "recordCount": 10,
+      "earliestTimestamp": "2026-09-07",
+      "latestTimestamp": "2026-09-18",
+      "fields": {
+        "symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "start": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "end": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "data[].date": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["string"]
+        },
+        "data[].net_foreign_inflow": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "data[].foreign_buy_idr": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "data[].foreign_sell_idr": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        },
+        "data[].foreign_share": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["number"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 261,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [],
+      "reportedYears": [],
+      "timestampsByField": {
+        "data[].date": {
+          "earliest": "2026-09-07",
+          "latest": "2026-09-18"
+        }
+      }
+    },
+    {
+      "capability": "ownership",
+      "endpoint": "/company/shareholders-composition/BBCA/?year=2026",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/company/shareholders-composition",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:22.881Z",
+      "status": "VERIFIED_WORKING",
+      "httpStatus": 200,
+      "latencyMs": 274,
+      "recordCount": 8,
+      "earliestTimestamp": "2026-01-30",
+      "latestTimestamp": "2026-08-31",
+      "fields": {
+        "symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "year": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "data[].date": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["string"]
+        },
+        "data[].shares_number": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].insurance_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].corporate_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].pension_fund_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].financial_institutions_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].individual_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].mutual_fund_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].securities_companies_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].foundation_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].other_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].total_l": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].insurance_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].corporate_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].pension_fund_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].financial_institutions_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].individual_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].mutual_fund_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].securities_companies_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].foundation_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].other_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].total_f": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].numbers_of_shareholders": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "data[].change_in_shareholders": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 273,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [
+        "Snapshot date is period-end, not publication/availability time."
+      ],
+      "reportedYears": [2026],
+      "timestampsByField": {
+        "data[].date": {
+          "earliest": "2026-01-30",
+          "latest": "2026-08-31"
+        }
+      }
+    },
+    {
+      "capability": "corporateActions",
+      "endpoint": "/company/corporate-actions/BBCA/",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/company/corporate-actions",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:23.470Z",
+      "status": "VERIFIED_WORKING",
+      "httpStatus": 200,
+      "latencyMs": 295,
+      "recordCount": 1,
+      "earliestTimestamp": null,
+      "latestTimestamp": null,
+      "fields": {
+        "symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "corporate_actions.agm[].agm_date": {
+          "present": 9,
+          "nonNull": 9,
+          "types": ["string"]
+        },
+        "corporate_actions.agm[].agm_time": {
+          "present": 9,
+          "nonNull": 9,
+          "types": ["string"]
+        },
+        "corporate_actions.agm[].agm_place": {
+          "present": 9,
+          "nonNull": 9,
+          "types": ["string"]
+        },
+        "corporate_actions.agm[].agm_result": {
+          "present": 9,
+          "nonNull": 1,
+          "types": ["null", "string"]
+        },
+        "corporate_actions.bonus": {
+          "present": 1,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "corporate_actions.warrant": {
+          "present": 1,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "corporate_actions.dividend[].ex_date": {
+          "present": 15,
+          "nonNull": 15,
+          "types": ["string"]
+        },
+        "corporate_actions.dividend[].payment_date": {
+          "present": 15,
+          "nonNull": 15,
+          "types": ["string"]
+        },
+        "corporate_actions.dividend[].dividend_yield": {
+          "present": 15,
+          "nonNull": 12,
+          "types": ["null", "number"]
+        },
+        "corporate_actions.dividend[].dividend_amount": {
+          "present": 15,
+          "nonNull": 15,
+          "types": ["number"]
+        },
+        "corporate_actions.right_issue": {
+          "present": 1,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "corporate_actions.stock_split[].date": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "corporate_actions.stock_split[].split_ratio": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "corporate_actions.upcoming_dividend": {
+          "present": 1,
+          "nonNull": 0,
+          "types": ["null"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 294,
+          "rateLimit": {}
+        }
+      ],
+      "notes": ["Event dates are not source freshness timestamps."],
+      "reportedYears": [],
+      "timestampsByField": {
+        "corporate_actions.agm[].agm_date": {
+          "earliest": "2022-03-17",
+          "latest": "2026-03-12"
+        },
+        "corporate_actions.dividend[].ex_date": {
+          "earliest": "2020-04-21",
+          "latest": "2026-08-31"
+        },
+        "corporate_actions.dividend[].payment_date": {
+          "earliest": "2020-05-11",
+          "latest": "2026-09-16"
+        },
+        "corporate_actions.stock_split[].date": {
+          "earliest": "2021-10-13",
+          "latest": "2021-10-13"
+        }
+      }
+    },
+    {
+      "capability": "companyReport",
+      "endpoint": "/company/report/BBCA/?sections=overview,financials,ownership",
+      "method": "GET",
+      "source": "https://docs.sectors.app/api-references/v2/indonesia/report/company-report",
+      "ticker": "BBCA",
+      "capturedAt": "2026-09-21T11:30:24.069Z",
+      "status": "VERIFIED_BUT_LIMITED",
+      "httpStatus": 200,
+      "latencyMs": 299,
+      "recordCount": 1,
+      "earliestTimestamp": "2023-12-31",
+      "latestTimestamp": "2026-09-18",
+      "fields": {
+        "symbol": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "company_name": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.listing_board": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.industry": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.sub_industry": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.sector": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.sub_sector": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.market_cap": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.market_cap_rank": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.address": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.employee_num": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.employee_num_rank": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.listing_date": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.website": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.phone": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.email": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.last_close_price": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.latest_close_date": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "overview.daily_close_change": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.ytd_low.2026-06-09": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.52_w_low.2026-06-09": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.90_d_low.2026-06-30": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.ytd_high.2026-01-06": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.52_w_high.2025-10-30": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.90_d_high.2026-09-04": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.all_time_low.2004-06-08": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.all_time_price.all_time_high.2024-09-23": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.esg_score": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "overview.tags[]": {
+          "present": 5,
+          "nonNull": 5,
+          "types": ["string"]
+        },
+        "overview.indices[]": {
+          "present": 10,
+          "nonNull": 10,
+          "types": ["string"]
+        },
+        "overview.affiliates[]": {
+          "present": 2,
+          "nonNull": 2,
+          "types": ["string"]
+        },
+        "financials.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2020.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2021.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2021.eps_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2022.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2022.eps_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2023.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2023.eps_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2024.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2024.eps_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2025.eps": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_eps.2025.eps_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].tax": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].ebit": {
+          "present": 8,
+          "nonNull": 2,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].year": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].ebitda": {
+          "present": 8,
+          "nonNull": 2,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].revenue": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].earnings": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].net_debt": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].net_loan": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].cash_only": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].provision": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].credit_rwa": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].gross_loan": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].market_rwa": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].total_debt": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].cash_inflow": {
+          "present": 8,
+          "nonNull": 3,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].cash_outflow": {
+          "present": 8,
+          "nonNull": 3,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].fixed_assets": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].gross_profit": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].time_deposit": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].total_assets": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].total_equity": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].net_cash_flow": {
+          "present": 8,
+          "nonNull": 5,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].operating_pnl": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].total_capital": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].total_deposit": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].free_cash_flow": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].long_term_debt": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].premium_income": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].prepaid_assets": {
+          "present": 8,
+          "nonNull": 5,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].cost_of_revenue": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].current_account": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].interest_income": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].non_loan_assets": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].operational_rwa": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].premium_expense": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].savings_account": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].short_term_debt": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].interest_expense": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].end_cash_position": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].operating_expense": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].retained_earnings": {
+          "present": 8,
+          "nonNull": 5,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].total_liabilities": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].core_capital_tier1": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].industry_breakdown": {
+          "present": 4,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].net_premium_income": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].outstanding_shares": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].allowance_for_loans": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].current_liabilities": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].earnings_before_tax": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].financing_cash_flow": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].investing_cash_flow": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].net_interest_income": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].non_interest_income": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].operating_cash_flow": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].cash_and_equivalents": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].net_increased_decreased": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].non_loan_earning_assets": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].high_quality_liquid_asset": {
+          "present": 8,
+          "nonNull": 3,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].total_risk_weighted_asset": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].non_loan_non_earning_assets": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].supplementary_capital_tier2": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].non_operating_income_or_loss": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].total_cash_and_due_from_banks": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].interest_expense_non_operating": {
+          "present": 8,
+          "nonNull": 0,
+          "types": ["null"]
+        },
+        "financials.historical_financials[].non_interest_bearing_liabilities": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].realized_capital_goods_investment": {
+          "present": 8,
+          "nonNull": 3,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].other_interest_bearing_liabilities": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financials[].industry_breakdown.loan_at_risk.Special Mention Loan": {
+          "present": 4,
+          "nonNull": 4,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].industry_breakdown.loan_at_risk.Non-performing Loan (NPL)": {
+          "present": 4,
+          "nonNull": 4,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].industry_breakdown.loan_at_risk.Restructured Loan (current)": {
+          "present": 4,
+          "nonNull": 4,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].industry_breakdown.non_loan_asset[].class": {
+          "present": 40,
+          "nonNull": 40,
+          "types": ["string"]
+        },
+        "financials.historical_financials[].industry_breakdown.non_loan_asset[].amount": {
+          "present": 40,
+          "nonNull": 40,
+          "types": ["number"]
+        },
+        "financials.historical_financials[].industry_breakdown.non_loan_asset[].category": {
+          "present": 40,
+          "nonNull": 40,
+          "types": ["string"]
+        },
+        "financials.historical_financials[].industry_breakdown.loan_by_economic_sectors[].key": {
+          "present": 44,
+          "nonNull": 44,
+          "types": ["string"]
+        },
+        "financials.historical_financials[].industry_breakdown.loan_by_economic_sectors[].group": {
+          "present": 44,
+          "nonNull": 44,
+          "types": ["string"]
+        },
+        "financials.historical_financials[].industry_breakdown.loan_by_economic_sectors[].value": {
+          "present": 44,
+          "nonNull": 44,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].year": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["string"]
+        },
+        "financials.historical_financial_ratio[].capital.capital_adequacy_ratio": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].leverage.debt_to_asset_ratio": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].leverage.debt_to_equity_ratio": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].liquidity.casa_ratio": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].liquidity.leverage_ratio": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].liquidity.loan_to_deposit_ratio": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].liquidity.liquidity_coverage_ratio": {
+          "present": 8,
+          "nonNull": 3,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].liquidity.operating_cash_flow_margin": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].efficiency.total_asset_turnover": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].profitability.roa": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].profitability.roe": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].profitability.efficiency_ratio": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].profitability.net_profit_margin": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.historical_financial_ratio[].profitability.net_interest_margin": {
+          "present": 8,
+          "nonNull": 4,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].profitability.cost_to_income_ratio": {
+          "present": 8,
+          "nonNull": 6,
+          "types": ["null", "number"]
+        },
+        "financials.historical_financial_ratio[].profitability.operating_profit_margin": {
+          "present": 8,
+          "nonNull": 8,
+          "types": ["number"]
+        },
+        "financials.yoy_quarter_earnings_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "financials.yoy_quarter_revenue_growth": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["number"]
+        },
+        "ownership.major_shareholders[].name": {
+          "present": 12,
+          "nonNull": 12,
+          "types": ["string"]
+        },
+        "ownership.major_shareholders[].share_value": {
+          "present": 12,
+          "nonNull": 12,
+          "types": ["number"]
+        },
+        "ownership.major_shareholders[].share_amount": {
+          "present": 12,
+          "nonNull": 12,
+          "types": ["number"]
+        },
+        "ownership.major_shareholders[].share_percentage": {
+          "present": 12,
+          "nonNull": 12,
+          "types": ["string"]
+        },
+        "ownership.top_transactions.date": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "ownership.top_transactions.top_buyers[].name": {
+          "present": 3,
+          "nonNull": 3,
+          "types": ["string"]
+        },
+        "ownership.top_transactions.top_buyers[].changeAmount": {
+          "present": 3,
+          "nonNull": 3,
+          "types": ["number"]
+        },
+        "ownership.top_transactions.top_sellers[].name": {
+          "present": 3,
+          "nonNull": 3,
+          "types": ["string"]
+        },
+        "ownership.top_transactions.top_sellers[].changeAmount": {
+          "present": 3,
+          "nonNull": 3,
+          "types": ["number"]
+        },
+        "ownership.institutional_transaction_flow[].date": {
+          "present": 24,
+          "nonNull": 24,
+          "types": ["string"]
+        },
+        "ownership.institutional_transaction_flow[].net_transaction": {
+          "present": 24,
+          "nonNull": 24,
+          "types": ["number"]
+        },
+        "ownership.whale_investors[]": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        },
+        "ownership.conglomerates_group[]": {
+          "present": 1,
+          "nonNull": 1,
+          "types": ["string"]
+        }
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 200,
+          "latencyMs": 297,
+          "rateLimit": {}
+        }
+      ],
+      "notes": [
+        "Overview, annual financials and ownership sections sampled; validate individual fields before using."
+      ],
+      "reportedYears": [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+      "timestampsByField": {
+        "overview.listing_date": {
+          "earliest": "2000-05-31",
+          "latest": "2000-05-31"
+        },
+        "overview.latest_close_date": {
+          "earliest": "2026-09-18",
+          "latest": "2026-09-18"
+        },
+        "ownership.top_transactions.date": {
+          "earliest": "2026-08-31",
+          "latest": "2026-08-31"
+        },
+        "ownership.institutional_transaction_flow[].date": {
+          "earliest": "2023-12-31",
+          "latest": "2026-08-31"
+        }
+      }
+    }
+  ]
+}

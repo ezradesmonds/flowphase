@@ -84,7 +84,7 @@ export function AlertCenter({ analyses }: { analyses: Intelligence[] }) {
             label: "Phase",
             value: phase,
             set: setPhase,
-            options: [...CORE_PHASES, "UNCLASSIFIED", "TRANSITION"],
+            options: [...CORE_PHASES, "UNCERTAIN", "TRANSITION"],
           },
           {
             label: "Status",

@@ -1,0 +1,126 @@
+{
+  "purpose": "Schema example only; never production data. Arrays truncated to two records; nonessential text omitted.",
+  "metadata": {
+    "capability": "brokerSummary",
+    "endpoint": "/broker-summary/BBCA/?start=2026-09-07&end=2026-09-20",
+    "ticker": "BBCA",
+    "capturedAt": "2026-09-21T11:30:20.760Z",
+    "status": "VERIFIED_WORKING",
+    "httpStatus": 200,
+    "pagination": "No page traversal; date windows or single response",
+    "notes": []
+  },
+  "payload": {
+    "symbol": "BBCA.JK",
+    "start": "2026-09-07",
+    "end": "2026-09-20",
+    "data": [
+      {
+        "date": "2026-09-07",
+        "summary": [
+          {
+            "broker_code": "AG",
+            "bfreq": 81,
+            "blot": 2437,
+            "bval": 1609490000,
+            "bavg_per_share": 6604.3906,
+            "sfreq": 121,
+            "slot": 7146,
+            "sval": 4746752500,
+            "savg_per_share": 6642.5308,
+            "nlot": -4709,
+            "nval": -3137262500,
+            "navg_per_share": 6642.5308,
+            "f_bfreq": 3,
+            "f_blot": 4,
+            "f_bval": 2652500,
+            "f_bavg_per_share": 6631.25,
+            "d_bavg_per_share": 6604.3465,
+            "f_sfreq": 42,
+            "f_slot": 2011,
+            "f_sval": 1332315000,
+            "f_savg_per_share": 6625.1367,
+            "d_savg_per_share": 6649.3427
+          },
+          {
+            "broker_code": "AH",
+            "bfreq": 1,
+            "blot": 750,
+            "bval": 496875000,
+            "bavg_per_share": 6625,
+            "sfreq": 0,
+            "slot": 0,
+            "sval": 0,
+            "savg_per_share": null,
+            "nlot": 750,
+            "nval": 496875000,
+            "navg_per_share": 6625,
+            "f_bfreq": null,
+            "f_blot": null,
+            "f_bval": null,
+            "f_bavg_per_share": null,
+            "d_bavg_per_share": 6625,
+            "f_sfreq": null,
+            "f_slot": null,
+            "f_sval": null,
+            "f_savg_per_share": null,
+            "d_savg_per_share": null
+          }
+        ]
+      },
+      {
+        "date": "2026-09-08",
+        "summary": [
+          {
+            "broker_code": "AF",
+            "bfreq": 0,
+            "blot": 0,
+            "bval": 0,
+            "bavg_per_share": null,
+            "sfreq": 43,
+            "slot": 5009,
+            "sval": 3368507500,
+            "savg_per_share": 6724.9102,
+            "nlot": -5009,
+            "nval": -3368507500,
+            "navg_per_share": 6724.9102,
+            "f_bfreq": null,
+            "f_blot": null,
+            "f_bval": null,
+            "f_bavg_per_share": null,
+            "d_bavg_per_share": null,
+            "f_sfreq": null,
+            "f_slot": null,
+            "f_sval": null,
+            "f_savg_per_share": null,
+            "d_savg_per_share": 6724.9102
+          },
+          {
+            "broker_code": "AG",
+            "bfreq": 1369,
+            "blot": 80001,
+            "bval": 53692410000,
+            "bavg_per_share": 6711.4674,
+            "sfreq": 192,
+            "slot": 10053,
+            "sval": 6735560000,
+            "savg_per_share": 6700.0497,
+            "nlot": 69948,
+            "nval": 46956850000,
+            "navg_per_share": 6711.4674,
+            "f_bfreq": 1360,
+            "f_blot": 79855,
+            "f_bval": 53594902500,
+            "f_bavg_per_share": 6711.5275,
+            "d_bavg_per_share": 6678.5959,
+            "f_sfreq": 0,
+            "f_slot": 0,
+            "f_sval": 0,
+            "f_savg_per_share": null,
+            "d_savg_per_share": 6700.0497
+          }
+        ]
+      }
+    ]
+  }
+}

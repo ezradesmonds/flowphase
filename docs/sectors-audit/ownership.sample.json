@@ -1,0 +1,71 @@
+{
+  "purpose": "Schema example only; never production data. Arrays truncated to two records; nonessential text omitted.",
+  "metadata": {
+    "capability": "ownership",
+    "endpoint": "/company/shareholders-composition/BBCA/?year=2026",
+    "ticker": "BBCA",
+    "capturedAt": "2026-09-21T11:30:22.881Z",
+    "status": "VERIFIED_WORKING",
+    "httpStatus": 200,
+    "pagination": "No page traversal; date windows or single response",
+    "notes": ["Snapshot date is period-end, not publication/availability time."]
+  },
+  "payload": {
+    "symbol": "BBCA.JK",
+    "year": 2026,
+    "data": [
+      {
+        "date": "2026-08-31",
+        "shares_number": 123275050000,
+        "insurance_l": 2351378590,
+        "corporate_l": 650217360,
+        "pension_fund_l": 324857000,
+        "financial_institutions_l": 437363600,
+        "individual_l": 11009825687,
+        "mutual_fund_l": 1167164829,
+        "securities_companies_l": 107560773,
+        "foundation_l": 72699960,
+        "other_l": 14381600,
+        "total_l": 16135449399,
+        "insurance_f": 635769338,
+        "corporate_f": 621878921,
+        "pension_fund_f": 4993879259,
+        "financial_institutions_f": 2290139404,
+        "individual_f": 326607580,
+        "mutual_fund_f": 21057048160,
+        "securities_companies_f": 424505379,
+        "foundation_f": 329841005,
+        "other_f": 5638572675,
+        "total_f": 36318241721,
+        "numbers_of_shareholders": 767281,
+        "change_in_shareholders": -15416
+      },
+      {
+        "date": "2026-07-31",
+        "shares_number": 123275050000,
+        "insurance_l": 2406061790,
+        "corporate_l": 639358985,
+        "pension_fund_l": 327545000,
+        "financial_institutions_l": 437363600,
+        "individual_l": 11091661113,
+        "mutual_fund_l": 1223560978,
+        "securities_companies_l": 110263741,
+        "foundation_l": 73486060,
+        "other_l": 14283100,
+        "total_l": 16323584367,
+        "insurance_f": 651011685,
+        "corporate_f": 989616284,
+        "pension_fund_f": 4948602260,
+        "financial_institutions_f": 2510683267,
+        "individual_f": 326311580,
+        "mutual_fund_f": 20232370180,
+        "securities_companies_f": 434821897,
+        "foundation_f": 299882405,
+        "other_f": 5736807195,
+        "total_f": 36130106753,
+        "numbers_of_shareholders": 782697,
+        "change_in_shareholders": -14418
+      }
+    ]
+  }
+}

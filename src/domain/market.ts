@@ -1,13 +1,36 @@
 export const PHASES = [
-  "ACCUMULATION",
-  "MARKUP",
-  "EUPHORIA",
-  "DISTRIBUTION",
-  "MARKDOWN",
-  "UNCLASSIFIED",
+  "AKUMULASI",
+  "POMPOM",
+  "MENGGORENG",
+  "DISTRIBUSI",
+  "POST_DISTRIBUTION_MARKDOWN",
+  "UNCERTAIN",
+  "TRANSITION",
+  "INSUFFICIENT_DATA",
 ] as const;
 export type MarketPhase = (typeof PHASES)[number];
+export type PrimaryPhase = "AKUMULASI" | "POMPOM" | "MENGGORENG" | "DISTRIBUSI";
+export type MarketCondition = "NONE" | "POST_DISTRIBUTION_MARKDOWN";
+export type EvidenceStatus = "OBSERVED" | "DERIVED" | "INFERRED" | "UNAVAILABLE";
+export interface PhaseEvidence {
+  status: EvidenceStatus;
+  feature: string;
+  description: string;
+  value: number | null;
+  source: string;
+}
 export interface PhaseRegion {
+  marketCondition: MarketCondition;
+  label: string;
+  coverage: number;
+  dataQualityFactor: number;
+  algorithmVersion: string;
+  configVersion: string;
+  scores: Record<PrimaryPhase, number>;
+  evidenceItems: PhaseEvidence[];
+  againstEvidence: PhaseEvidence[];
+  liquidityBucket: string;
+  changePoint: boolean;
   tags?: string[];
   active?: boolean;
   cycleId?: string;
@@ -38,6 +61,9 @@ export interface DailyCandle {
   value?: number;
 }
 export interface BrokerFlow {
+  availableAt?: string;
+  buyFrequency?: number;
+  sellFrequency?: number;
   ticker: string;
   date: string;
   brokerCode: string;
@@ -54,8 +80,9 @@ export interface BrokerInventoryEstimate {
   periodStart: string;
   periodEnd: string;
   cumulativeNetLot: number;
-  peakEstimatedInventory: number;
-  estimatedRemainingInventory: number;
+  peakEstimatedInventory: number | null;
+  estimatedRemainingInventory: number | null;
+  observedPeakNetLot: number;
   remainingRatio: number | null;
   averageAccumulationPrice?: number;
   role:

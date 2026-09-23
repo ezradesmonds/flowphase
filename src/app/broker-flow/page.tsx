@@ -29,13 +29,7 @@ export default async function BrokerFlowPage({
         sum + s.inventory.find((b) => b.brokerCode === code)!.cumulativeNetLot,
       0,
     ),
-    remaining: details.reduce(
-      (sum, s) =>
-        sum +
-        s.inventory.find((b) => b.brokerCode === code)!
-          .estimatedRemainingInventory,
-      0,
-    ),
+    remaining: null,
   }));
   const buyers = brokers.filter((b) => b.net > 0).sort((a, b) => b.net - a.net);
   const sellers = brokers
@@ -146,12 +140,7 @@ export default async function BrokerFlowPage({
                     {signed(s.scanner.cumulativeNetFlow)} lots
                   </td>
                   <td>
-                    {number(
-                      s.inventory
-                        .filter((b) => ["D1", "D2"].includes(b.brokerCode))
-                        .reduce((n, b) => n + b.estimatedRemainingInventory, 0),
-                    )}{" "}
-                    lots
+                    Opening inventory unknown
                   </td>
                   <td>
                     {s.scanner.cumulativeNetFlow >= 0
