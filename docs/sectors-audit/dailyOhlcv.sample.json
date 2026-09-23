@@ -1,0 +1,35 @@
+{
+  "purpose": "Schema example only; never production data. Arrays truncated to two records; nonessential text omitted.",
+  "metadata": {
+    "capability": "dailyOhlcv",
+    "endpoint": "/daily/BBCA/?start=2026-09-07&end=2026-09-20",
+    "ticker": "BBCA",
+    "capturedAt": "2026-09-21T11:30:20.169Z",
+    "status": "VERIFIED_WORKING",
+    "httpStatus": 200,
+    "pagination": "No page traversal; date windows or single response",
+    "notes": []
+  },
+  "payload": [
+    {
+      "symbol": "BBCA.JK",
+      "date": "2026-09-07",
+      "close": 6625,
+      "open": 6750,
+      "high": 6750,
+      "low": 6600,
+      "volume": 65118000,
+      "market_cap": 808530234187500
+    },
+    {
+      "symbol": "BBCA.JK",
+      "date": "2026-09-08",
+      "close": 6675,
+      "open": 6600,
+      "high": 6775,
+      "low": 6575,
+      "volume": 108127600,
+      "market_cap": 814632349162500
+    }
+  ]
+}

@@ -11,7 +11,7 @@ test("scanner filters, sorting, reset, empty state and stock navigation", async 
   await page.getByLabel("Ticker or company").fill("bank");
   await page
     .getByLabel("Market phase", { exact: true })
-    .selectOption("ACCUMULATION");
+    .selectOption("AKUMULASI");
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await expect(page.locator("tbody")).toContainText("BBCA");
   await page.getByRole("button", { name: "Reset", exact: true }).click();
@@ -24,7 +24,7 @@ test("scanner filters, sorting, reset, empty state and stock navigation", async 
   await page.getByRole("link", { name: "Analyze BBCA", exact: true }).click();
   await expect(page).toHaveURL(/\/stocks\/BBCA/);
   await expect(
-    page.getByRole("heading", { name: "Price & volume" }),
+    page.getByRole("heading", { name: "Price & volume", exact: true }),
   ).toBeVisible();
   await expect(page.locator("canvas").first()).toBeVisible();
   await page.getByRole("button", { name: "20 sessions", exact: true }).click();

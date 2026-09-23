@@ -1,0 +1,34 @@
+{
+  "purpose": "Schema example only; never production data. Arrays truncated to two records; nonessential text omitted.",
+  "metadata": {
+    "capability": "foreignFlow",
+    "endpoint": "/foreign-flow/BBCA/?start=2026-09-07&end=2026-09-20",
+    "ticker": "BBCA",
+    "capturedAt": "2026-09-21T11:30:22.313Z",
+    "status": "VERIFIED_WORKING",
+    "httpStatus": 200,
+    "pagination": "No page traversal; date windows or single response",
+    "notes": []
+  },
+  "payload": {
+    "symbol": "BBCA.JK",
+    "start": "2026-09-07",
+    "end": "2026-09-20",
+    "data": [
+      {
+        "date": "2026-09-07",
+        "net_foreign_inflow": -39248712500,
+        "foreign_buy_idr": 171364782500,
+        "foreign_sell_idr": 210613495000,
+        "foreign_share": 0.4413
+      },
+      {
+        "date": "2026-09-08",
+        "net_foreign_inflow": 269685235000,
+        "foreign_buy_idr": 590694242500,
+        "foreign_sell_idr": 321009007500,
+        "foreign_share": 0.6292
+      }
+    ]
+  }
+}

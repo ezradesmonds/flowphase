@@ -1,34 +1,47 @@
-# Calculated market phase regions
+# Corrected phase regions — model v2
 
-The TradingView market chart now calculates regions independently for the selected ticker, timeframe and current candle snapshot. `PhaseRegion` is the normalized model in `src/domain/market.ts`; calculated regions have `status: "CALCULATED"`. Demo replay and the authored demo-analysis subsystem remain unchanged. No demo phase dates or symbol-specific thresholds enter this detector. Sectors broker support is attached separately by the intelligence engine and does not change OHLCV classification.
+The primary cycle is AKUMULASI → POMPOM → MENGGORENG → DISTRIBUSI.
+Post-Distribution Markdown is a separate condition. Transition, Uncertain and
+Insufficient Data are valid abstention states. All available loaded candles are
+processed; no sample dates or ticker-specific boundaries are used.
 
-## Rules (version 1)
+## Scoring and segmentation
 
-`src/lib/phases/detect.ts` is a pure, deterministic OHLCV heuristic. Each bar uses its trailing 20 bars plus the preceding close. The first 20 bars are warmup. ATR is the mean true range, including gaps from the preceding close. Directional efficiency is absolute net movement divided by total absolute close-to-close movement. Relative volume compares the current bar with the preceding 20-bar mean. The close-location proxy is the volume-weighted mean of `(2 × close − high − low) / (high − low)`; it is not broker flow.
+src/config/phases.ts versions weights and thresholds; src/lib/phases/features.ts
+derives causal trailing features with nulls for unsupported evidence.
+src/lib/phases/detect.ts applies weighted scores, crossing penalties, evidence gates,
+minimum duration, three-bar confirmation, hysteresis and online score change points.
+Regions with the same state and similar evidence merge. A change in evidence
+coverage or material scores can start a new segment. Labels are not backpainted.
 
-Rules are evaluated in this order:
+Pompom measures attention building; Menggoreng requires aggressive historical return
+extremeness plus volume/frequency and volatility expansion. Distribution uses prior
+accumulator selling and depletion even while price rises. Markdown requires earlier
+confirmed distribution. No stage is synthesized to complete a cycle.
 
-| Phase                      | Criteria                                                              |
-| -------------------------- | --------------------------------------------------------------------- |
-| EUPHORIA_RISK (MARKUP tag) | Net movement ≥ 5 ATR, efficiency ≥ 0.60, relative volume ≥ 1.60       |
-| MARKUP                     | Net movement ≥ 1.80 ATR, efficiency ≥ 0.35                            |
-| MARKDOWN                   | Net movement ≤ −1.80 ATR, efficiency ≥ 0.35                           |
-| ACCUMULATION               | Efficiency < 0.35, total range ≤ 10 ATR, close-location proxy ≥ 0.10  |
-| DISTRIBUTION               | Efficiency < 0.35, total range ≤ 10 ATR, close-location proxy ≤ −0.10 |
-| UNCLASSIFIED               | Other conditions, insufficient data, zero movement/range/volume       |
+Confidence = raw confidence × coverage × quality. OHLCV-only results are
+Price-Volume Phase Candidate, capped at 35%. Narrative, ticks and order-book evidence
+are unavailable. Broker publication watermarks gate historical decisions.
 
-Thresholds are heuristic defaults, not empirically calibrated. Consolidation labels describe price/volume behavior and do not establish real accumulation or distribution by investors. Confidence is a bounded 50–95 rule-strength score. Directional scores use efficiency and ATR movement; consolidation scores use efficiency and close-location strength; euphoria also uses relative volume. Percent notation is presentation, not a forecast probability.
+## Chart
 
-At least three consecutive equal classifications form a region. An unclassified bar always breaks a region. The third matching bar starts the region at that bar, never at the first candidate. Earlier two-bar transitions remain uncolored. Individual classifications never read future bars. The final candle and final region are provisional; changing loaded history can change the warmup boundary and results. Invalid, duplicate or descending timestamps fail closed with no regions; inputs are never mutated.
+Lightweight Charts custom series primitives project each segment start/end and actual
+high/low through current chart scales. No embedded TradingView widget drawing API is
+claimed. Labels have a small caption strip; evidence panels retain full dates,
+confidence, coverage, leading evidence, counterevidence and algorithm version.
 
-Each region records its first open, last close, actual minimum low and maximum high. IDs include ticker, timeframe, phase and start timestamp. Evidence and warnings are available in the expandable list below the chart.
+Colors: Akumulasi blue, Pompom purple, Menggoreng orange, Distribusi red,
+Transition/Uncertain gray, post-distribution markdown dark red at distinct opacity.
+Insufficient Data remains visible in the timeline and is not drawn over candles.
 
-## Rendering
+## Migration and validation
 
-`PhaseRegionsPrimitive` uses the documented Lightweight Charts series primitive API, attached to the candlestick series. Every draw projects timestamps and prices through the current chart scales, so pan, zoom, price-scale changes, resize and new candles remain aligned. It uses media coordinates for device-pixel scaling, clips to the chart pane and does not alter autoscaling or capture pointer events. Primitive cleanup occurs before chart disposal.
+scripts/migrate-phase-cache.mjs preserves v1 files and records checksums.
+Production reads analysis-v2 only; legacy classifications require recomputation.
+Unit tests cover each phase, ambiguity, OHLCV confidence caps, crossing, rising-price
+distribution, inventory unknowns, causal prefixes and chart projection.
+Walk-forward evaluation is in src/lib/phases/backtest.ts. Research defaults are
+not calibrated performance estimates.
 
-The specified blue, green, amber, red and slate borders and transparent fills are shared with the legend. UNCLASSIFIED has no renderer style and is explicitly skipped. Labels use Indonesian names and confidence. An 18-pixel caption strip above the region's price high reduces candle occlusion. Labels are compressed to the visible region width and clipped at the viewport boundary. Zooming in makes narrow labels readable, and the complete accessible evidence list remains available at every zoom level. The regions can be hidden without replacing chart data or resetting the viewport.
-
-## Verification
-
-Tests exercise four core phases and the Euphoria Risk tag, warmup and ambiguous data, invalid snapshots, price-scale invariance, ticker/timeframe identity, region boundaries, streaming extension, immutable input and causal per-bar classification. Existing TradingView and demo tests remain in place.
+Interactive upstream requests remain bounded; lifetime history is not established.
+Missing broker publication timestamps prevent valid historical broker confirmation.

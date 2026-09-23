@@ -1,5 +1,6 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
+  timeout: 60000,
   testDir: "./tests",
   testMatch: "ui.spec.ts",
   fullyParallel: false,
@@ -7,7 +8,7 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:3100",
     browserName: "chromium",
-    channel: "chromium",
+    channel: process.env.PLAYWRIGHT_CHANNEL ?? "chromium",
     viewport: { width: 1440, height: 1050 },
   },
   webServer: {
@@ -15,5 +16,6 @@ export default defineConfig({
     env: { FLOWPHASE_MODE: "demo" },
     url: "http://127.0.0.1:3100",
     reuseExistingServer: false,
+    timeout: 120000,
   },
 });

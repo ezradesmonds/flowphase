@@ -12,26 +12,26 @@ export const DEMO_NOTICE = "DEMO DATA — NOT LIVE MARKET DATA";
 export const DEMO_AS_OF = "2026-08-28T09:00:00Z";
 // Fictional scenarios using recognizable ticker labels. These are NOT historical observations.
 const seeds: [string, string, string, MarketPhase, number, number, number][] = [
-  ["BBCA", "Bank Central Asia", "Financials", "ACCUMULATION", 86, 18, 8900],
-  ["TLKM", "Telkom Indonesia", "Infrastructure", "MARKUP", 82, 27, 2900],
-  ["ANTM", "Aneka Tambang", "Basic materials", "EUPHORIA", 78, 69, 1800],
-  ["BBRI", "Bank Rakyat Indonesia", "Financials", "DISTRIBUTION", 84, 86, 4200],
-  ["ASII", "Astra International", "Industrials", "ACCUMULATION", 79, 24, 5100],
-  ["GOTO", "GoTo Gojek Tokopedia", "Technology", "MARKDOWN", 75, 78, 65],
-  ["BMRI", "Bank Mandiri", "Financials", "MARKUP", 88, 22, 5800],
-  ["ICBP", "Indofood CBP", "Consumer staples", "ACCUMULATION", 73, 20, 11000],
-  ["DMAS", "Puradelta Lestari", "Real estate", "UNCLASSIFIED", 38, 43, 160],
+  ["BBCA", "Bank Central Asia", "Financials", "AKUMULASI", 86, 18, 8900],
+  ["TLKM", "Telkom Indonesia", "Infrastructure", "POMPOM", 82, 27, 2900],
+  ["ANTM", "Aneka Tambang", "Basic materials", "MENGGORENG", 78, 69, 1800],
+  ["BBRI", "Bank Rakyat Indonesia", "Financials", "DISTRIBUSI", 84, 86, 4200],
+  ["ASII", "Astra International", "Industrials", "AKUMULASI", 79, 24, 5100],
+  ["GOTO", "GoTo Gojek Tokopedia", "Technology", "POST_DISTRIBUTION_MARKDOWN", 75, 78, 65],
+  ["BMRI", "Bank Mandiri", "Financials", "POMPOM", 88, 22, 5800],
+  ["ICBP", "Indofood CBP", "Consumer staples", "AKUMULASI", 73, 20, 11000],
+  ["DMAS", "Puradelta Lestari", "Real estate", "UNCERTAIN", 38, 43, 160],
   [
     "ADRO",
     "Alamtri Resources Indonesia",
     "Energy",
-    "DISTRIBUTION",
+    "DISTRIBUSI",
     76,
     81,
     2200,
   ],
-  ["UNVR", "Unilever Indonesia", "Consumer staples", "MARKDOWN", 71, 74, 1700],
-  ["INCO", "Vale Indonesia", "Basic materials", "EUPHORIA", 72, 65, 3700],
+  ["UNVR", "Unilever Indonesia", "Consumer staples", "POST_DISTRIBUTION_MARKDOWN", 71, 74, 1700],
+  ["INCO", "Vale Indonesia", "Basic materials", "MENGGORENG", 72, 65, 3700],
 ];
 const tradingDates = Array.from(
   { length: 84 },
@@ -50,9 +50,9 @@ export const demoStocks: StockDetail[] = seeds.map(
           ? 0
           : i < 40
             ? (i - 20) * 0.002
-            : currentPhase === "MARKDOWN" || currentPhase === "DISTRIBUTION"
+            : currentPhase === "POST_DISTRIBUTION_MARKDOWN" || currentPhase === "DISTRIBUSI"
               ? 0.04 - (i - 40) * 0.0025
-              : currentPhase === "EUPHORIA" || currentPhase === "MARKUP"
+              : currentPhase === "MENGGORENG" || currentPhase === "POMPOM"
                 ? 0.04 + (i - 40) * 0.004
                 : 0.04;
       const close = Math.round(
@@ -73,7 +73,7 @@ export const demoStocks: StockDetail[] = seeds.map(
       const net =
         (i < 40
           ? 500 + (i % 5) * 80
-          : currentPhase === "DISTRIBUTION" || currentPhase === "MARKDOWN"
+          : currentPhase === "DISTRIBUSI" || currentPhase === "POST_DISTRIBUTION_MARKDOWN"
             ? -650 - (i % 5) * 100
             : 380 + (i % 5) * 60) *
         (index + 1);
@@ -117,9 +117,9 @@ export const demoStocks: StockDetail[] = seeds.map(
       cycleStart: start,
       cumulativeNetFlow: cohort.reduce((s, b) => s + b.cumulativeNetLot, 0),
       remainingInventoryRatio:
-        currentPhase === "UNCLASSIFIED" ? null : cohort[0].remainingRatio,
+        currentPhase === "UNCERTAIN" ? null : cohort[0].remainingRatio,
       relativeVolume:
-        currentPhase === "UNCLASSIFIED"
+        currentPhase === "UNCERTAIN"
           ? null
           : Number(
               (
@@ -143,9 +143,9 @@ export const demoStocks: StockDetail[] = seeds.map(
         periodStart: start,
         periodEnd: end,
         dataQuality:
-          currentPhase === "UNCLASSIFIED" ? "INSUFFICIENT" : "PARTIAL",
+          currentPhase === "UNCERTAIN" ? "INSUFFICIENT" : "PARTIAL",
         evidence:
-          currentPhase === "UNCLASSIFIED"
+          currentPhase === "UNCERTAIN"
             ? [
                 "This fixture illustrates insufficient evidence for a phase label.",
               ]
@@ -166,7 +166,7 @@ export const demoStocks: StockDetail[] = seeds.map(
           label: "01 · Base formation",
           start: candles[0].date,
           end: candles[19].date,
-          phase: "ACCUMULATION",
+          phase: "AKUMULASI",
           explanation:
             "Authored demo period: a narrow price range and consistent cohort net buying.",
         },
@@ -175,7 +175,7 @@ export const demoStocks: StockDetail[] = seeds.map(
           label: "02 · Range expansion",
           start: candles[20].date,
           end: candles[39].date,
-          phase: "MARKUP",
+          phase: "POMPOM",
           explanation:
             "Authored demo period: price progresses beyond the earlier range.",
         },

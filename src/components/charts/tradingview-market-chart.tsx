@@ -16,6 +16,7 @@ import {
 } from "@/domain/chart-market";
 import type { Intelligence } from "@/domain/intelligence";
 import { analyze } from "@/lib/intelligence/analyze";
+import { PhaseBrokerEvidence } from "../phase-broker-evidence";
 import { IntelligencePanels } from "../intelligence-panels";
 import { Panel } from "../ui";
 import type { PhaseRegion } from "@/domain/market";
@@ -32,14 +33,15 @@ function setup(element: HTMLDivElement, theme: ChartTheme) {
     layout: {
       background: {
         type: ColorType.Solid,
-        color: light ? "#ffffff" : "#121822",
+        color: light ? "#ffffff" : "#0c1922",
       },
-      textColor: light ? "#5d6877" : "#929eaf",
+      textColor: light ? "#5d6877" : "#91a9bc",
+      fontFamily: '"IBM Plex Sans", Arial, sans-serif',
       attributionLogo: true,
     },
     grid: {
-      vertLines: { color: light ? "#e6e9ee" : "#202735" },
-      horzLines: { color: light ? "#e6e9ee" : "#202735" },
+      vertLines: { color: light ? "#e6e9ee" : "#172c38" },
+      horzLines: { color: light ? "#e6e9ee" : "#172c38" },
     },
     timeScale: { timeVisible: true },
     localization: { locale: "en-GB" },
@@ -140,8 +142,8 @@ function MarketCanvas({
       if (bar) markerTimes.set(bar.time, "!");
     }
     for (const region of regions)
-      if (region.tags?.includes("EUPHORIA_RISK"))
-        markerTimes.set(region.endTimestamp, "Euphoria risk");
+      if (region.phase === "MENGGORENG")
+        markerTimes.set(region.endTimestamp, "Menggoreng candidate");
     current.markers.setMarkers(
       [...markerTimes]
         .sort(([a], [b]) => a - b)
@@ -163,7 +165,11 @@ function MarketCanvas({
       if (region) onSelectRegion?.(region);
     };
     current.chart.subscribeClick(click);
-    return () => current.chart.unsubscribeClick(click);
+    current.chart.subscribeCrosshairMove(click);
+    return () => {
+      current.chart.unsubscribeClick(click);
+      current.chart.unsubscribeCrosshairMove(click);
+    };
   }, [alerts, candles, regions, onSelectRegion, timeframe]);
   return (
     <div
@@ -254,10 +260,15 @@ export function TradingViewMarketChart({
             ticker,
             { ...data, candles: visibleCandles },
             initialAnalysis.broker,
-            data.fetchedAt,
+            replay && visibleCandles.length
+              ? new Date(visibleCandles.at(-1)!.time * 1000).toISOString()
+              : Date.parse(initialAnalysis.calculatedAt) >
+                  Date.parse(data.fetchedAt)
+                ? initialAnalysis.calculatedAt
+                : data.fetchedAt,
           )
         : undefined,
-    [initialAnalysis, data, visibleCandles, ticker],
+    [initialAnalysis, data, visibleCandles, ticker, replay],
   );
   const regions = useMemo(
     () =>
@@ -501,7 +512,7 @@ export function TradingViewMarketChart({
         aria-label="Market phase legend"
       >
         {Object.entries(PHASE_REGION_STYLES)
-          .filter(([phase]) => phase !== "EUPHORIA")
+          .filter(([phase]) => phase !== "INSUFFICIENT_DATA")
           .map(([, style]) => (
             <span
               key={style.label}
@@ -522,9 +533,9 @@ export function TradingViewMarketChart({
       </div>
       {brokerConfirmation && (
         <p className="chart-caption">
-          Only phases supported by available institutional-proxy daily net flow
-          are shown. Missing or conflicting broker evidence hides the box; it
-          does not change the OHLCV phase.
+          Only regions with sufficient broker coverage are shown. Broker
+          evidence enters the phase scores; coverage does not identify
+          beneficial owners.
         </p>
       )}
       {data && !intelligence && (
@@ -536,8 +547,9 @@ export function TradingViewMarketChart({
           </p>
           <p>
             OHLCV heuristics only. Confidence measures rule strength, not
-            probability. Latest region may change. UNCLASSIFIED bars have no
-            fill. Zoom in to read narrow labels.
+            probability. Latest region may change. Transition and uncertain
+            regions use gray. Insufficient data has no fill. Zoom in to read
+            narrow labels.
           </p>
           {regions.length > 0 && (
             <details>
@@ -549,14 +561,21 @@ export function TradingViewMarketChart({
                 {regions.map((region) => (
                   <li key={region.id} style={{ margin: "12px 0" }}>
                     <strong>
-                      {region.phase !== "UNCLASSIFIED" &&
+                      {region.phase !== "UNCERTAIN" &&
                         PHASE_REGION_STYLES[region.phase].label}{" "}
                       · {region.confidence}%
                     </strong>{" "}
                     · {new Date(region.startTimestamp * 1000).toISOString()} —{" "}
                     {new Date(region.endTimestamp * 1000).toISOString()} ·{" "}
-                    {region.status}
+                    {region.status} · Coverage{" "}
+                    {(region.coverage * 100).toFixed(1)}% ·{" "}
+                    {region.algorithmVersion}
                     <p>{region.evidence.join(" ")}</p>
+                    <p>
+                      {region.againstEvidence
+                        .map((e) => e.status + ": " + e.description)
+                        .join(" ")}
+                    </p>
                     <p>{region.warnings.join(" ")}</p>
                   </li>
                 ))}
@@ -564,6 +583,9 @@ export function TradingViewMarketChart({
             </details>
           )}
         </div>
+      )}
+      {intelligence && selected && (
+        <PhaseBrokerEvidence analysis={intelligence} region={selected} />
       )}
       {intelligence && (
         <IntelligencePanels
@@ -580,7 +602,7 @@ export function TradingViewMarketChart({
       </p>
       <p className="chart-caption">
         {production
-          ? "Phase regions use TradingView OHLCV heuristics. Sectors broker flow is reported separately and is not used as an ownership claim."
+          ? "Phase regions combine TradingView OHLCV with broker evidence available at decision time. Missing evidence lowers coverage and confidence."
           : "Demo broker flows and phase labels are not overlays on these market candles."}{" "}
         <a
           className="text-link"

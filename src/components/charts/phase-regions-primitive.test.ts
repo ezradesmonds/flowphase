@@ -7,9 +7,11 @@ import type { PhaseRegion } from "@/domain/market";
 import { PhaseRegionsPrimitive } from "./phase-regions-primitive";
 
 const region: PhaseRegion = {
+  marketCondition:"NONE", label:"Akumulasi",coverage:0.5,dataQualityFactor:1,algorithmVersion:"test",configVersion:"test",
+  scores:{AKUMULASI:0,POMPOM:0,MENGGORENG:0,DISTRIBUSI:0},evidenceItems:[],againstEvidence:[],liquidityBucket:"LOW",changePoint:false,
   id: "test",
   ticker: "AAA",
-  phase: "ACCUMULATION",
+  phase: "AKUMULASI",
   startTimestamp: 100,
   endTimestamp: 200,
   startPrice: 20,
@@ -38,7 +40,7 @@ it("projects through current time and price scales on every draw; skips unclassi
   primitive.attached(attachment);
   primitive.setRegions([
     region,
-    { ...region, id: "unknown", phase: "UNCLASSIFIED" },
+    { ...region, id: "unknown", phase: "INSUFFICIENT_DATA" },
   ]);
   const ctx = {
     save: vi.fn(),

@@ -1,3 +1,5 @@
+> Superseded phase/inventory interpretation: see [corrected v2 model](phase-regions.md). Historical verification below describes the earlier implementation, not current test results.
+
 # Laporan upgrade FlowPhase
 
 Tanggal validasi: 19 September 2026. Proyek lama diteruskan; integrasi TradingView/Sectors dan pemisahan demo tetap dipertahankan. Tidak deploy atau push.
@@ -15,7 +17,7 @@ Dashboard menunjukkan cakupan analisis tersimpan, distribusi fase, transisi, flo
 - Empat fase inti: accumulation, markup, distribution, markdown. Euphoria merupakan risk tag markup. UNCLASSIFIED tidak memiliki kotak. Region dimulai pada bar konfirmasi ketiga, tanpa backdating; replay hanya menganalisis prefix candle dan memotong broker flow yang belum tersedia pada tanggal replay.
 - Siklus dapat ACTIVE, COMPLETE atau INCOMPLETE. Fase tidak dipaksa lengkap. Broker support adalah bukti harian terpisah, bukan penentu kepemilikan.
 - Registry broker terpusat: XL/XC/YP/PD/KK retail-accessible, AI/CS/BK/YU/AK institutional-associated; lainnya mixed/unknown. Seed USER_HEURISTIC, confidence 40, belum tervalidasi. Semua grup termasuk unknown tetap terlihat.
-- Inventory dihitung kronologis per ticker/broker/periode: running net = jumlah buyLot minus sellLot; peak = maksimum positif running net; remaining = max(0, ending net); reduction = peak minus remaining; ratio = remaining/peak jika peak positif. Net negatif tetap ditampilkan; bukan short selling atau holdings terverifikasi. Starting holdings tidak diketahui.
+- Inventory dihitung kronologis per ticker/broker/periode: running net = jumlah buyLot minus sellLot; peak = maksimum positif running net; remaining/depletion ratios require a sourced opening position; unknown holdings remain null. Observed peak net change is not absolute inventory. Net negatif tetap ditampilkan; bukan short selling atau holdings terverifikasi. Starting holdings tidak diketahui.
 - Nilai transaksi IDR; bobot harga menggunakan lot × 100 saham. Harga rata-rata memakai nilai/volume bila tersedia. Riwayat broker maksimal tiga jendela 14 hari; periode yang tidak mencakup awal siklus tidak diklaim sebagai inventory penuh sejak awal siklus.
 - Price-volume: return, rolling return, volume mean, relative volume, z-score, ATR, range expansion, wick proxies, price progress per volume, divergence, breakout/breakdown. Baseline 20 bar sebelumnya tidak menyertakan bar yang dinilai.
 - Alert volume medium RVOL/z ≥2, high ≥3, critical RVOL ≥5 atau z ≥4. Baseline kurang, varians nol dan indikasi anomali perubahan harga ekstrem menahan alert. OHLCV total tidak disebut volume beli/jual agresor.
@@ -46,7 +48,7 @@ Analisis tersimpan secara atomic di `.flowphase/analysis-v1`, cache 15 menit, ba
 
 Pemeriksaan browser terhubung mencakup AADI, AALI dan ABBA; chart, timeline/evidence, inventory, alert dialog dan state tanpa data. AADI mobile 390×844 telah diperiksa tanpa overflow halaman. AALI Daily → Weekly → Daily dan replay pertama mengungkap bug snapshot, lalu perbaikan diverifikasi dengan session 1/200 dan broker masa depan tidak muncul. ABBA mengungkap riwayat candle lama yang kini diberi peringatan. Ini pemeriksaan interaktif, bukan kelulusan suite Playwright otomatis (peluncuran suite sebelumnya diblokir Windows).
 
-Hasil lint, typecheck, build, format dan pemeriksaan rahasia final dicatat pada respons penyelesaian. Tidak ada backtest prediktif yang diklaim telah selesai.
+Lint, TypeScript, production build dan format check lulus. Pemeriksaan 117 file tracked tidak menemukan file rahasia/build terlarang atau token private-key umum; ini bukan audit keamanan menyeluruh. Filter scanner fase lama dan kombinasi tanpa hasil, filter alert AALI/NEW serta dialog evidence BK juga diverifikasi. Dashboard desktop dan mobile 390×844 diperiksa; lebar dokumen 375 px, tanpa overflow horizontal. Console browser bersih dan request server yang diperiksa berstatus 200. Transisi berurutan dengan fase sama dikeluarkan dari daftar perubahan fase. Tidak ada backtest prediktif yang diklaim telah selesai.
 
 ## Prioritas berikut sebelum submission
 

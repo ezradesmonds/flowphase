@@ -1,3 +1,4 @@
+import { StockResearchTabs } from "./stock-research-tabs";
 import { analysisSummary } from "@/lib/intelligence/summary";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -113,6 +114,7 @@ export async function ProductionStock({
           analysis={analysis}
         />
       </div>
+      <StockResearchTabs analysis={analysis} />
       <details className="panel evidence-inline">
         <summary>Company structure &amp; peers · Why?</summary>
         <p>

@@ -1,0 +1,56 @@
+{
+  "purpose": "Schema example only; never production data. Arrays truncated to two records; nonessential text omitted.",
+  "metadata": {
+    "capability": "corporateActions",
+    "endpoint": "/company/corporate-actions/BBCA/",
+    "ticker": "BBCA",
+    "capturedAt": "2026-09-21T11:30:23.470Z",
+    "status": "VERIFIED_WORKING",
+    "httpStatus": 200,
+    "pagination": "No page traversal; date windows or single response",
+    "notes": ["Event dates are not source freshness timestamps."]
+  },
+  "payload": {
+    "symbol": "BBCA.JK",
+    "corporate_actions": {
+      "agm": [
+        {
+          "agm_date": "2022-03-17",
+          "agm_time": "[TEXT OMITTED]",
+          "agm_place": "[TEXT OMITTED]",
+          "agm_result": null
+        },
+        {
+          "agm_date": "2022-09-14",
+          "agm_time": "[TEXT OMITTED]",
+          "agm_place": "[TEXT OMITTED]",
+          "agm_result": null
+        }
+      ],
+      "bonus": null,
+      "warrant": null,
+      "dividend": [
+        {
+          "ex_date": "2026-08-31",
+          "payment_date": "2026-09-16",
+          "dividend_yield": null,
+          "dividend_amount": 25
+        },
+        {
+          "ex_date": "2026-03-30",
+          "payment_date": "2026-04-08",
+          "dividend_yield": null,
+          "dividend_amount": 281
+        }
+      ],
+      "right_issue": null,
+      "stock_split": [
+        {
+          "date": "2021-10-13",
+          "split_ratio": 5
+        }
+      ],
+      "upcoming_dividend": null
+    }
+  }
+}

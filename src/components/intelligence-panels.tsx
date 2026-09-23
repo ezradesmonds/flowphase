@@ -139,6 +139,11 @@ export function AlertList({ alerts }: { alerts: MarketAlert[] }) {
             {selected.ticker} · {readable(selected.type)}
           </h2>
           <p>{selected.dataSource.join(" · ")} · Historical / batch</p>
+          <p>
+            Actual: {num(selected.actualValue)} · Baseline:{" "}
+            {num(selected.baseline)} · Coverage:{" "}
+            {num(selected.coverage * 100, 1)}%
+          </p>
           <h3>Why?</h3>
           {selected.evidence.map((e) => (
             <p key={e}>{e}</p>
@@ -180,12 +185,23 @@ function InventoryTable({ rows }: { rows: InventoryRow[] }) {
               "Broker / classification",
               "Gross buy",
               "Gross sell",
-              "Net lots",
+              "Observed net change · lots",
               "Average buy",
               "Average sell",
               "Peak",
               "Remaining",
               "Remaining %",
+              "Buy value · IDR",
+              "Sell value · IDR",
+              "Net value · IDR",
+              "Opening inventory",
+              "Inventory depletion",
+              "Gross / net",
+              "Crossing warning",
+              "First accumulation",
+              "Last material buy",
+              "Last material sell",
+              "Moving average cost",
               "Activity / role",
               "Why?",
             ].map((t) => (
@@ -217,6 +233,25 @@ function InventoryTable({ rows }: { rows: InventoryRow[] }) {
                   ? "Unavailable"
                   : num(r.remainingRatio * 100, 1) + "%"}
               </td>
+              <td>{num(r.grossBuyValue)}</td>
+              <td>{num(r.grossSellValue)}</td>
+              <td>{num(r.netValue)}</td>
+              <td>
+                {r.openingInventoryLot === null
+                  ? "Unknown"
+                  : num(r.openingInventoryLot)}
+              </td>
+              <td>
+                {r.inventoryDepletionRatio === null
+                  ? "Unavailable"
+                  : num(r.inventoryDepletionRatio * 100, 1) + "%"}
+              </td>
+              <td>{num(r.grossToNetRatio, 2)}</td>
+              <td>{r.crossingWarning ? "SUSPECTED_CROSSING" : "No warning"}</td>
+              <td>{r.firstAccumulationDate ?? "Unavailable"}</td>
+              <td>{r.lastMaterialBuyDate ?? "Unavailable"}</td>
+              <td>{r.lastMaterialSellDate ?? "Unavailable"}</td>
+              <td>{num(r.movingAverageCost, 2)}</td>
               <td>
                 {r.activeTradingDays} reported days
                 <small className="cell-note">{r.role}</small>
@@ -267,6 +302,7 @@ export function IntelligencePanels({
 }) {
   const [tab, setTab] = useState("Intelligence");
   const [cycleId, setCycleId] = useState("");
+  const [showAllPhases, setShowAllPhases] = useState(false);
   const cycle =
     analysis.cycles.find((c) => c.id === cycleId) ?? analysis.cycles.at(-1);
   const period = selectedRegion ?? cycle;
@@ -303,7 +339,7 @@ export function IntelligencePanels({
     <div className="intelligence-content" id="inventory">
       <div className="analysis-toolbar">
         <label>
-          Cycle{" "}
+          Periode siklus{" "}
           <select
             aria-label="Cycle selector"
             value={cycle?.id ?? ""}
@@ -327,60 +363,188 @@ export function IntelligencePanels({
           {cycle?.evidenceStatus ?? "INSUFFICIENT_DATA"}
         </span>
       </div>
-      <div className="phase-timeline" aria-label="Phase timeline">
-        {(cycle?.phases ?? []).map((r) => (
+      <section className="phase-history-panel">
+        <div className="phase-history-heading">
+          <div>
+            <h2>Perjalanan fase saham</h2>
+            <p>
+              Urutan dari lama ke baru. Pilih kartu untuk melihat alasan dan
+              data pada periode tersebut.
+            </p>
+          </div>
           <button
-            key={r.id}
             className="button"
-            aria-pressed={selectedRegion?.id === r.id}
-            onClick={() => onSelectRegion(r)}
+            onClick={() => setShowAllPhases((v) => !v)}
           >
-            {readable(r.phase)} · {sessionDate(r.startTimestamp)} ·{" "}
-            {r.confidence}% {r.active ? "Active" : ""}
+            {showAllPhases
+              ? "Tampilkan 6 terbaru"
+              : `Lihat semua ${cycle?.phases.length ?? 0} fase`}
           </button>
-        ))}
-      </div>
+        </div>
+        <p className="phase-help">
+          Skor menunjukkan kekuatan bukti model, bukan peluang harga naik. Fase
+          dengan bukti terbatas masih berupa kandidat.
+        </p>
+        <div
+          className="phase-timeline phase-history-grid"
+          aria-label="Phase timeline"
+        >
+          {(showAllPhases
+            ? (cycle?.phases ?? [])
+            : (cycle?.phases ?? []).slice(-6)
+          ).map((r) => (
+            <button
+              key={r.id}
+              className={`button phase-history-card phase-${r.phase.toLowerCase()}`}
+              aria-pressed={selectedRegion?.id === r.id}
+              onClick={() => onSelectRegion(r)}
+            >
+              <span className="phase-card-heading">
+                <strong>
+                  {r.phase === "UNCERTAIN"
+                    ? "Belum ada arah jelas"
+                    : r.phase === "TRANSITION"
+                      ? "Peralihan fase"
+                      : r.phase === "INSUFFICIENT_DATA"
+                        ? "Data belum cukup"
+                        : `${readable(r.phase)}${r.label.toLowerCase().includes("candidate") ? " · kandidat" : ""}`}
+                </strong>
+                {r.active && <em>Terkini</em>}
+              </span>
+              <span>
+                {sessionDate(r.startTimestamp)} — {sessionDate(r.endTimestamp)}
+              </span>
+              <span className="phase-score">
+                <span
+                  style={{
+                    width: `${Math.max(0, Math.min(100, r.confidence))}%`,
+                  }}
+                />
+              </span>
+              <small>
+                Skor bukti {r.confidence}% ·{" "}
+                {r.brokerEvidence === "PRICE_VOLUME_ONLY"
+                  ? "Harga & volume saja"
+                  : "Lihat rincian bukti"}
+              </small>
+            </button>
+          ))}
+        </div>
+        {!cycle?.phases.length && (
+          <p className="phase-help">
+            Belum ada fase terdeteksi untuk siklus ini.
+          </p>
+        )}
+      </section>
       {selectedRegion && (
-        <div className="evidence-inline">
+        <div className="evidence-inline phase-selection">
           <button className="button" onClick={() => onSelectRegion(undefined)}>
-            Clear selected phase
+            Kembali ke seluruh siklus
           </button>
-          <h3>
-            {readable(selectedRegion.phase)} · {selectedRegion.confidence}%
-          </h3>
+          <h2>Ringkasan periode terpilih</h2>
+          <div className="phase-summary-grid">
+            <div>
+              <small>Fase</small>
+              <strong>{readable(selectedRegion.phase)}</strong>
+            </div>
+            <div>
+              <small>Skor bukti model</small>
+              <strong>{selectedRegion.confidence}%</strong>
+            </div>
+            <div>
+              <small>Kelengkapan data</small>
+              <strong>{num(selectedRegion.coverage * 100, 1)}%</strong>
+            </div>
+            <div>
+              <small>Perubahan harga periode</small>
+              <strong>
+                {num(
+                  (selectedRegion.endPrice / selectedRegion.startPrice - 1) *
+                    100,
+                  2,
+                )}
+                %
+              </strong>
+            </div>
+          </div>
           <p>
             {sessionDate(selectedRegion.startTimestamp)} —{" "}
-            {sessionDate(selectedRegion.endTimestamp)} ·{" "}
-            {selectedRegion.cycleId} · {selectedRegion.brokerEvidence}
+            {sessionDate(selectedRegion.endTimestamp)}. Tabel broker di bawah
+            mengikuti periode ini.
           </p>
-          <p>{selectedRegion.evidence.join(" ")}</p>
-          <p>
-            {
-              selectedCandles.filter(
-                (c) => c.time >= selectedRegion.startTimestamp,
-              ).length
-            }{" "}
-            bars ·{" "}
-            {selectedPv?.explanation ?? "Price-volume state unavailable."}{" "}
-            Relative volume at phase end: {num(selectedPv?.relativeVolume, 2)}×.
-            Estimated remaining across reported brokers:{" "}
+          <p className="phase-explanation">
+            {selectedRegion.phase === "TRANSITION"
+              ? "Pola sedang berubah. Model belum memiliki bukti yang cukup untuk menetapkan fase baru."
+              : selectedRegion.phase === "UNCERTAIN"
+                ? "Sinyal belum konsisten. Gunakan data tambahan sebelum menarik kesimpulan."
+                : selectedRegion.phase === "INSUFFICIENT_DATA"
+                  ? "Riwayat yang tersedia belum cukup untuk menilai fase pada periode ini."
+                  : "Model menemukan pola kandidat dari data yang tersedia. Periksa kekuatan dan kelengkapan buktinya sebelum menggunakan hasil ini."}{" "}
             {rows.length
-              ? num(
-                  rows.reduce((n, r) => n + r.estimatedRemainingInventory, 0),
-                ) + " lots"
-              : "unavailable"}
-            .
+              ? `${rows.length} broker memiliki data pada periode ini.`
+              : "Data broker tidak tersedia pada periode ini; kesimpulan kepemilikan tidak dapat dibuat."}
           </p>
-          <p>{selectedRegion.warnings.join(" ")}</p>
-          <p>
-            Phase return{" "}
-            {num(
-              (selectedRegion.endPrice / selectedRegion.startPrice - 1) * 100,
-              2,
-            )}
-            %. {rows.length} brokers with available daily rows; {alerts.length}{" "}
-            alerts in this period. Inventory below uses this selection.
-          </p>
+          <details className="phase-evidence-details">
+            <summary>
+              Lihat bukti, keterbatasan, dan rincian perhitungan
+            </summary>
+            <h3>
+              {readable(selectedRegion.phase)} · {selectedRegion.confidence}%
+            </h3>
+            <p>
+              {sessionDate(selectedRegion.startTimestamp)} —{" "}
+              {sessionDate(selectedRegion.endTimestamp)} ·{" "}
+              {selectedRegion.cycleId} · {selectedRegion.brokerEvidence}
+            </p>
+            <p>
+              {selectedRegion.label} · Coverage{" "}
+              {num(selectedRegion.coverage * 100, 1)}% ·{" "}
+              {selectedRegion.algorithmVersion}
+            </p>
+            {selectedRegion.evidenceItems.slice(0, 3).map((e, i) => (
+              <p key={i}>
+                {e.status}: {e.description}
+              </p>
+            ))}
+            <h4>Evidence against / unavailable</h4>
+            {selectedRegion.againstEvidence.map((e, i) => (
+              <p key={i}>
+                {e.status}: {e.description}
+              </p>
+            ))}
+            <p>
+              {
+                selectedCandles.filter(
+                  (c) => c.time >= selectedRegion.startTimestamp,
+                ).length
+              }{" "}
+              bars ·{" "}
+              {selectedPv?.explanation ?? "Price-volume state unavailable."}{" "}
+              Relative volume at phase end: {num(selectedPv?.relativeVolume, 2)}
+              ×. Estimated remaining across reported brokers:{" "}
+              {rows.length &&
+              rows.every((r) => r.estimatedRemainingInventory !== null)
+                ? num(
+                    rows.reduce(
+                      (n, r) => n + r.estimatedRemainingInventory!,
+                      0,
+                    ),
+                  ) + " lots"
+                : "unavailable"}
+              .
+            </p>
+            <p>{selectedRegion.warnings.join(" ")}</p>
+            <p>
+              Phase return{" "}
+              {num(
+                (selectedRegion.endPrice / selectedRegion.startPrice - 1) * 100,
+                2,
+              )}
+              %. {rows.length} brokers with available daily rows;{" "}
+              {alerts.length} alerts in this period. Inventory below uses this
+              selection.
+            </p>
+          </details>
         </div>
       )}
       <div
@@ -410,7 +574,12 @@ export function IntelligencePanels({
           <>
             <div className="detail-metrics">
               {[
-                ["Current phase", readable(analysis.phase)],
+                [
+                  "Current phase",
+                  analysis.regions.at(-1)?.label ?? readable(analysis.phase),
+                ],
+                ["Market condition", readable(analysis.marketCondition)],
+                ["Coverage", num(analysis.coverage * 100, 1) + "%"],
                 [
                   "Confidence",
                   analysis.confidence
@@ -493,7 +662,7 @@ export function IntelligencePanels({
         {tab === "Broker Inventory" && (
           <>
             <h3>
-              Estimated inventory since{" "}
+              Observed Inventory Change Since{" "}
               {start < availableStart
                 ? "available broker history"
                 : "cycle / selected phase start"}
@@ -512,13 +681,13 @@ export function IntelligencePanels({
             <details>
               <summary>Why? Inventory calculation</summary>
               <p>
-                Chronological cumulative net = buy − sell. Peak = maximum
-                positive cumulative net. Remaining = max(0, ending net).
-                Reduction = peak − remaining. Ratio = remaining / peak,
-                unavailable when peak is zero. Average price = gross value /
-                (gross lots × 100), or lot-weighted provider average when values
-                are missing. Missing daily sessions are not assumed zero;
-                estimates cover reported rows only.
+                Observed cumulative net = sum(buy lots − sell lots) since the
+                selected start. Opening inventory: Unknown. Remaining holdings,
+                remaining ratio and cost basis stay unavailable without a
+                supplied opening position. Average trade price = value / (lots ×
+                100). A supplied opening position uses moving weighted average
+                cost, with daily buys then sells; never FIFO. Missing sessions
+                are not zero activity.
               </p>
             </details>
           </>
@@ -594,7 +763,7 @@ export function IntelligencePanels({
             <p>
               Cycles with missing phases remain incomplete. The latest cycle is
               active; an active cycle is not necessarily complete. A new
-              accumulation after distribution or markdown closes the preceding
+              accumulation after post-distribution markdown closes the preceding
               candidate.
             </p>
           </div>

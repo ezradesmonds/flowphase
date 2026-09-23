@@ -1,4 +1,5 @@
-export const number = (n: number) =>
+export const number = (n: number | null) =>
+  n === null ? "Unavailable" :
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
 export const compact = (n: number) =>
   new Intl.NumberFormat("en-US", {

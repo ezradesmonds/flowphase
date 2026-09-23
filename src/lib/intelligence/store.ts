@@ -8,14 +8,17 @@ import { sectorsRepository } from "@/lib/repositories/sectors-repository";
 import { getMarketCandles } from "@/lib/services/market-data-service";
 import { getBrokerHistory } from "./broker-history";
 import { analyze, sessionDate } from "./analyze";
-const directory = path.join(process.cwd(), ".flowphase", "analysis-v1");
+import { mergeBrokerHistory } from "./history";
+import { ALGORITHM_VERSION, PHASE_CONFIG } from "@/config/phases";
+// Preserve v1 verbatim; combined legacy labels need rescoring, not renaming.
+const directory = path.join(process.cwd(), ".flowphase", "analysis-v2");
 const pending = new Map<string, Promise<Intelligence>>();
 async function read(ticker: string): Promise<Intelligence | null> {
   try {
     const value = JSON.parse(
       await readFile(path.join(directory, `${ticker}.json`), "utf8"),
     ) as Intelligence;
-    return value.version === 1 && value.ticker === ticker ? value : null;
+    return value.version === 2 && value.ticker === ticker ? value : null;
   } catch {
     return null;
   }
@@ -40,6 +43,13 @@ export async function getIntelligence(ticker: string): Promise<Intelligence> {
   const previous = await read(ticker);
   if (
     previous &&
+    previous.algorithmVersion === ALGORITHM_VERSION &&
+    previous.configVersion === PHASE_CONFIG.version &&
+    previous.candles !== null &&
+    !(
+      previous.broker.flows.length === 0 &&
+      previous.broker.unavailableReason?.includes("unavailable")
+    ) &&
     Date.now() - Date.parse(previous.calculatedAt) <
       ANALYSIS_RULES.cacheSeconds * 1000
   )
@@ -56,14 +66,32 @@ export async function getIntelligence(ticker: string): Promise<Intelligence> {
       snapshot = await getMarketCandles({
         ticker,
         timeframe: "1D",
-        limit: 200,
+        limit: 500,
       });
     } catch {
       /* unavailable is explicit */
     }
     // Exclude today's not-yet-complete broker session. Dates are Jakarta calendar dates.
     const end = sessionDate(Date.now() / 1000 - 86400);
-    const broker = await getBrokerHistory(ticker, end);
+    const latestBroker = await getBrokerHistory(ticker, end);
+    const flows = mergeBrokerHistory(
+      previous?.broker.flows ?? [],
+      latestBroker.flows,
+    );
+    const broker = {
+      ...latestBroker,
+      flows,
+      start: flows[0]?.date ?? latestBroker.start,
+    };
+    // Preserve every already acquired bar instead of discarding history on refresh.
+    if (snapshot && previous?.candles?.source === snapshot.source) {
+      const merged = new Map(previous.candles.candles.map((c) => [c.time, c]));
+      for (const c of snapshot.candles) merged.set(c.time, c);
+      snapshot = {
+        ...snapshot,
+        candles: [...merged.values()].sort((a, b) => a.time - b.time),
+      };
+    }
     const result = analyze(ticker, snapshot, broker);
     await mkdir(directory, { recursive: true });
     const temp = path.join(directory, `${ticker}.${randomUUID()}.tmp`);

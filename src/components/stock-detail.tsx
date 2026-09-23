@@ -226,7 +226,7 @@ export function StockAnalysis({ stock }: { stock: StockDetail }) {
         </Panel>
       </div>
       <Panel
-        title="Estimated inventory since cycle start"
+        title="Observed inventory change since cycle start"
         note="Transaction-flow estimates, not broker ownership. Broker codes D1–D4 are fictional."
       >
         <div className="table-scroll">
@@ -267,8 +267,7 @@ export function StockAnalysis({ stock }: { stock: StockDetail }) {
         </div>
         <div className="panel-footnote">
           Estimates reset at {stock.phase.periodStart}. Negative signed flows
-          are retained; displayed inventory is clamped to zero. A ratio without
-          a positive peak is unavailable.
+          are retained. Opening inventory is unknown; remaining holdings and ratios are unavailable.
         </div>
       </Panel>
       <div className="two-column content-gap">

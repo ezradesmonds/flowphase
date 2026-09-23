@@ -1,5 +1,5 @@
 import type { BrokerFlow, BrokerInventoryEstimate } from "@/domain/market";
-/** Signed transaction flow is preserved; estimated displayed inventory is clamped. */
+/** Unknown opening holdings never become absolute inventory. */
 export function estimateInventory(
   flows: BrokerFlow[],
   ticker: string,
@@ -28,9 +28,10 @@ export function estimateInventory(
     periodStart: start,
     periodEnd: end,
     cumulativeNetLot: net,
-    peakEstimatedInventory: peak,
-    estimatedRemainingInventory: Math.max(0, net),
-    remainingRatio: peak > 0 ? Math.max(0, net) / peak : null,
+    peakEstimatedInventory: null,
+    estimatedRemainingInventory: null,
+    observedPeakNetLot: peak,
+    remainingRatio: null,
     role: net > 0 ? "ACCUMULATOR" : net < 0 ? "DISTRIBUTOR" : "NEUTRAL",
   };
 }

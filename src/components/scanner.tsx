@@ -157,6 +157,7 @@ export function Scanner({
         <label className="field">
           <span>Market phase</span>
           <select
+            aria-label="Market phase"
             value={filters.phase}
             onChange={(e) =>
               update("phase", e.target.value as ScannerFilters["phase"])
@@ -192,6 +193,7 @@ export function Scanner({
         <label className="field">
           <span>Sort by</span>
           <select
+            aria-label="Sort by"
             value={filters.sort}
             onChange={(e) =>
               update("sort", e.target.value as ScannerFilters["sort"])
@@ -206,6 +208,7 @@ export function Scanner({
         <label className="field">
           <span>Order</span>
           <select
+            aria-label="Order"
             value={filters.direction}
             onChange={(e) =>
               update("direction", e.target.value as "asc" | "desc")

@@ -32,6 +32,50 @@ export const freeFloatSchema = z.array(
   }),
 );
 const amount = z.number().finite().nonnegative();
+export const dailyPricesSchema = z.array(
+  z.object({
+    symbol: sectorSymbol,
+    date: z.iso.date(),
+    open: amount.nullable(),
+    high: amount.nullable(),
+    low: amount.nullable(),
+    close: amount,
+    volume: amount,
+    market_cap: amount.nullish(),
+  }),
+);
+
+/** Missing OHLC stays null; never substitute the close or synthesize candles. */
+export function normalizeDailyPrices(payload: unknown, ticker: string) {
+  const rows = dailyPricesSchema.parse(payload);
+  const dates = new Set<string>();
+  for (const row of rows) {
+    if (row.symbol !== ticker || dates.has(row.date))
+      throw new Error("Invalid daily identity or duplicate date.");
+    dates.add(row.date);
+    if (
+      row.high !== null &&
+      row.low !== null &&
+      (row.high < row.low ||
+        row.close > row.high ||
+        row.close < row.low ||
+        (row.open !== null && (row.open > row.high || row.open < row.low)))
+    )
+      throw new Error("Invalid OHLC range.");
+  }
+  return rows
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((row) => ({
+      ticker: row.symbol,
+      date: row.date,
+      open: row.open,
+      high: row.high,
+      low: row.low,
+      close: row.close,
+      volumeShares: row.volume,
+      marketCapIdr: row.market_cap ?? null,
+    }));
+}
 export const brokerSchema = z.object({
   symbol: sectorSymbol,
   start: z.iso.date(),
@@ -42,6 +86,8 @@ export const brokerSchema = z.object({
       summary: z.array(
         z.object({
           broker_code: z.string().min(1),
+          bfreq: amount.nullish(),
+          sfreq: amount.nullish(),
           blot: amount,
           slot: amount,
           bval: amount.nullish(),

@@ -16,15 +16,22 @@ export const BROKER_REGISTRY: readonly BrokerProfile[] = [
   notes:
     "User heuristic; multiple clients per broker. Not validated against future returns or beneficial ownership.",
   enabled: true,
+  effectiveFrom: "0001-01-01",
+  effectiveTo: null,
 }));
 export function brokerProfile(
   code: string,
   registry = BROKER_REGISTRY,
+  date = "9999-12-31",
+  ticker?: string,
 ): BrokerProfile {
   const brokerCode = code.trim().toUpperCase();
   return (
-    registry.find(
-      (p) => p.enabled && p.brokerCode.toUpperCase() === brokerCode,
+    [...registry].reverse().find(
+      (p) => p.enabled && p.brokerCode.toUpperCase() === brokerCode &&
+        (!p.symbol || p.symbol === ticker) &&
+        (!p.effectiveFrom || p.effectiveFrom <= date) &&
+        (!p.effectiveTo || date <= p.effectiveTo),
     ) ?? {
       brokerCode,
       classification: "MIXED_OR_UNKNOWN",

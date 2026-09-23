@@ -17,7 +17,7 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
     count: rows.filter((r) => r.currentPhase === phase).length,
   }));
   const accumulation = rows
-    .filter((r) => r.currentPhase === "ACCUMULATION")
+    .filter((r) => r.currentPhase === "AKUMULASI")
     .sort((a, b) => b.confidence - a.confidence);
   const risk = [...rows]
     .sort((a, b) => b.distributionRisk - a.distributionRisk)
@@ -143,7 +143,7 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
                     <small>{r.companyName}</small>
                   </strong>
                   <div className="phase-transition">
-                    <span>{i === 0 ? "Accumulation" : "Markup"}</span>
+                    <span>{i === 0 ? "Accumulation" : "Pompom"}</span>
                     <ArrowRight size={12} />
                     <PhaseBadge phase={r.currentPhase} />
                   </div>
@@ -200,7 +200,7 @@ export function Overview({ rows }: { rows: ScannerResult[] }) {
           </div>
           <Link
             className="panel-bottom-link"
-            href="/scanner?phase=ACCUMULATION"
+            href="/scanner?phase=AKUMULASI"
           >
             Explore accumulation scenarios <ArrowRight size={15} />
           </Link>
