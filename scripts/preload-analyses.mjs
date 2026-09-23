@@ -1,12 +1,17 @@
-const API_URL = "http://127.0.0.1:3000/api/intelligence";
-const STOCKS_URL = "http://127.0.0.1:3000/api/stocks";
+const BASE_HOST = process.env.BASE_URL ?? `http://127.0.0.1:${process.env.PORT ?? "3000"}`;
+const API_URL = `${BASE_HOST}/api/intelligence`;
+const STOCKS_URL = `${BASE_HOST}/api/stocks`;
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function main() {
-  const limit = process.argv[2] ? parseInt(process.argv[2], 10) : 50;
+  const requested = process.argv[2] ? Number.parseInt(process.argv[2], 10) : 60;
+  if (!Number.isInteger(requested) || requested < 1 || requested > 200) {
+    throw new Error("Preload count must be an integer between 1 and 200.");
+  }
+  const limit = requested;
   console.log(`Fetching stock list to preload up to ${limit} stocks...`);
   
   const universeRes = await fetch(STOCKS_URL);

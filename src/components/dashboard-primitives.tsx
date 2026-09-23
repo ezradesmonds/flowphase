@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import Link from "next/link";
 import { X, Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -28,6 +28,8 @@ export function MiniSparkline({
   color?: string;
   positive?: boolean;
 }) {
+  const gradientId = `sg-${useId().replaceAll(":", "")}`;
+
   if (!data || data.length < 2) {
     return (
       <svg width={width} height={height} className="sparkline-svg opacity-30 font-mono">
@@ -57,7 +59,6 @@ export function MiniSparkline({
 
   const isPos = positive ?? (data.at(-1)! >= data[0]);
   const strokeColor = color ?? (isPos ? "#00E676" : "#FF3355");
-  const gradientId = `sg-${Math.random().toString(36).substring(2, 8)}`;
   const firstPoint = points[0].split(",");
   const lastPoint = points[points.length - 1].split(",");
   const areaPath = `M ${points.join(" L ")} L ${lastPoint[0]},${height} L ${firstPoint[0]},${height} Z`;

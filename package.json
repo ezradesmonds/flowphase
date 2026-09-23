@@ -7,6 +7,8 @@
     "sectors:diagnose": "node --conditions=react-server --experimental-strip-types scripts/sectors-diagnose.mjs",
     "check:public-files": "node scripts/check-public-files.mjs",
     "dev": "next dev --hostname 127.0.0.1",
+    "preload": "node scripts/preload-analyses.mjs",
+    "preload:60": "node scripts/preload-analyses.mjs 60",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
