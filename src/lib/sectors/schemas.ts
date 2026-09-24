@@ -105,3 +105,63 @@ export const brokerSchema = z.object({
     }),
   ),
 });
+
+
+const brokerCohort = z.enum(["retail", "mixed", "institutional", "unknown"]);
+export const brokerRegistrySchema = z.array(
+  z.object({
+    code: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{2}$/),
+    name: z.string().trim().min(1),
+    is_foreign: z.boolean(),
+    cohort: brokerCohort.nullable(),
+    license_type: z.string().trim().min(1).nullable(),
+  }),
+);
+
+const moverRowSchema = z.object({
+  name: z.string().trim().min(1),
+  symbol: sectorSymbol,
+  price_change: z.number().finite(),
+  last_close_price: amount,
+  latest_close_date: z.iso.date(),
+});
+const moverPeriodsSchema = z
+  .object({
+    "1d": z.array(moverRowSchema).optional(),
+    "7d": z.array(moverRowSchema).optional(),
+    "14d": z.array(moverRowSchema).optional(),
+    "30d": z.array(moverRowSchema).optional(),
+    "365d": z.array(moverRowSchema).optional(),
+  })
+  .partial();
+export const topMoversSchema = z.object({
+  top_gainers: moverPeriodsSchema.optional(),
+  top_losers: moverPeriodsSchema.optional(),
+});
+
+export const mostTradedSchema = z.record(
+  z.iso.date(),
+  z.array(
+    z.object({
+      symbol: sectorSymbol,
+      company_name: z.string().trim().min(1),
+      volume: amount,
+      price: amount,
+    }),
+  ),
+);
+
+export const foreignFlowSchema = z.object({
+  symbol: sectorSymbol,
+  start: z.iso.date().optional(),
+  end: z.iso.date().optional(),
+  data: z.array(
+    z.object({
+      date: z.iso.date(),
+      foreign_buy_idr: amount.nullish(),
+      foreign_sell_idr: amount.nullish(),
+      net_foreign_inflow: z.number().finite().nullish(),
+      foreign_share: z.number().finite().min(0).max(1).nullish(),
+    }),
+  ),
+});

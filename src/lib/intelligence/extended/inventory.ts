@@ -1,6 +1,6 @@
 import type { Intelligence } from "@/domain/intelligence";
 import type { BrokerFlow } from "@/domain/market";
-import { brokerProfile } from "@/config/brokers";
+import { brokerProfile, type BrokerProfile } from "@/config/brokers";
 import { metric, RULES, type Affiliation, type Meta } from "./model";
 import { sessionDate } from "../analyze";
 export function brokerIdentity(
@@ -8,6 +8,7 @@ export function brokerIdentity(
   date: string,
   ticker: string,
   affiliations: Affiliation[] = [],
+  registry?: readonly BrokerProfile[],
 ) {
   const affiliation = affiliations.find(
     (a) =>
@@ -15,7 +16,7 @@ export function brokerIdentity(
       a.effective_from <= date &&
       (!a.effective_to || a.effective_to >= date),
   );
-  const p = brokerProfile(code, undefined, date, ticker);
+  const p = brokerProfile(code, registry, date, ticker);
   return {
     code,
     name: affiliation?.broker_name ?? "Name unavailable",
@@ -36,7 +37,10 @@ export function inventoryByPhase(
   start?: string,
   end?: string,
   affiliations: Affiliation[] = [],
+  registry?: readonly BrokerProfile[],
 ) {
+  const analysisProfiles = a.inventory.map((row) => row.profile);
+  const profileRegistry = registry ?? analysisProfiles;
   const all = a.broker.flows
     .filter((f) => f.ticker === a.ticker)
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -222,7 +226,13 @@ export function inventoryByPhase(
       };
       return {
         symbol: a.ticker,
-        broker: brokerIdentity(code, last, a.ticker, affiliations),
+        broker: brokerIdentity(
+          code,
+          last,
+          a.ticker,
+          affiliations,
+          profileRegistry,
+        ),
         segmentId: period.id,
         phase: period.phase,
         periodStart: first,

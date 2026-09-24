@@ -31,6 +31,7 @@ import {
 
 export const navItems = [
   { href: "/", label: "OVERVIEW", icon: LayoutDashboard, shortcut: "F1" },
+  { href: "/radar", label: "MARKET RADAR", icon: Radio, shortcut: "A+R" },
   { href: "/scanner", label: "SCANNER", icon: ScanLine, shortcut: "F2" },
   { href: "/stocks", label: "STOCKS", icon: TrendingUp, shortcut: "F3" },
   { href: "/brokers", label: "BROKER FLOW", icon: Users, shortcut: "F4" },
@@ -111,6 +112,12 @@ export function Shell({
         e.target instanceof HTMLTextAreaElement ||
         e.target instanceof HTMLSelectElement
       ) {
+        return;
+      }
+
+      if (e.altKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        router.push("/radar");
         return;
       }
 
@@ -283,7 +290,7 @@ export function Shell({
           <div className="p-1.5 space-y-0.5">
             <div className="px-2 py-1 mb-1 text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
               {!collapsed && <span>FUNCTION MODULES</span>}
-              <span className="text-slate-600">[F1-F9]</span>
+              <span className="text-slate-600">[F1-F9 + A+R]</span>
             </div>
 
             {navItems.map((item) => {

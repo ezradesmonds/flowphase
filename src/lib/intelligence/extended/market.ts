@@ -1,7 +1,7 @@
 import type { Intelligence } from "@/domain/intelligence";
 import type { IdxStock } from "@/domain/securities";
 import type { MarketCandle } from "@/domain/chart-market";
-import { brokerProfile } from "@/config/brokers";
+import { brokerProfile, type BrokerProfile } from "@/config/brokers";
 import { metric, type Meta } from "./model";
 import { sessionDate } from "../analyze";
 export function marketActivity(
@@ -12,6 +12,7 @@ export function marketActivity(
     { date: string; net: number | null; asOf: string }[]
   > = {},
   asOf = new Date().toISOString(),
+  registry?: readonly BrokerProfile[],
 ) {
   const today = sessionDate(Date.parse(asOf) / 1000);
   // The current Jakarta session may still be trading. Never compare its partial
@@ -72,9 +73,10 @@ export function marketActivity(
         ? baseline.reduce((s, c) => s + c.volume, 0) / baseline.length
         : null;
     const flow = a.broker.flows.filter((f) => f.date === date);
+    const profileRegistry = registry ?? a.inventory.map((row) => row.profile);
     const proxy = flow.filter(
       (f) =>
-        brokerProfile(f.brokerCode, undefined, f.date, a.ticker)
+        brokerProfile(f.brokerCode, profileRegistry, f.date, a.ticker)
           .classification === "INSTITUTIONAL_ASSOCIATED",
     );
     return [

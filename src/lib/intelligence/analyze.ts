@@ -1,6 +1,6 @@
 import type { CandleSnapshot } from "@/domain/chart-market";
 import type { BrokerSnapshot } from "@/domain/securities";
-import type { Intelligence } from "@/domain/intelligence";
+import type { BrokerProfile, Intelligence } from "@/domain/intelligence";
 import { detectPhaseRegions } from "@/lib/phases/detect";
 import { ALGORITHM_VERSION, PHASE_CONFIG } from "@/config/phases";
 import { sessionDate } from "@/lib/phases/features";
@@ -19,6 +19,7 @@ export function analyze(
   snapshot: CandleSnapshot | null,
   broker: BrokerSnapshot,
   now = new Date().toISOString(),
+  registry?: readonly BrokerProfile[],
 ): Intelligence {
   const candles = snapshot?.candles ?? [],
     last = candles.at(-1);
@@ -37,7 +38,7 @@ export function analyze(
     ticker,
     snapshot?.timeframe ?? "1D",
     candles,
-    { flows: broker.flows, strictAvailability: true, asOf: now },
+    { flows: broker.flows, registry, strictAvailability: true, asOf: now },
   );
   const stale = last
     ? Math.max(
@@ -66,15 +67,17 @@ export function analyze(
     broker.start,
     broker.end,
     last?.close ?? null,
+    registry,
   );
   const state = latest?.phase ?? "INSUFFICIENT_DATA";
   const marketCondition = latest?.marketCondition ?? "NONE";
   const alerts = [
     ...volumeAlerts(ticker, candles),
-    ...brokerAlerts(ticker, broker.flows),
+    ...brokerAlerts(ticker, broker.flows, registry),
     ...phaseAlerts(ticker, finalRegions),
     ...featureAlerts(ticker, candles, {
       flows: broker.flows,
+      registry,
       strictAvailability: true,
       asOf: now,
     }),
@@ -125,6 +128,11 @@ export function analyze(
       "Opening inventory: Unknown. Observed net change is not absolute holdings.",
       "Historical broker publication times are not established by an API backfill. Strict replay uses only recorded availableAt timestamps.",
       "Order-book data unavailable; tick, split-execution and narrative features disabled.",
+      ...(registry
+        ? []
+        : [
+            "Sectors Broker Registry unavailable; broker cohort classification fell back to low-confidence local heuristics.",
+          ]),
       ...(stale > 0
         ? [
             "Latest price snapshot is stale; current-market claims are not supported.",

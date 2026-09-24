@@ -6,11 +6,13 @@ Track: **03 — Market Intelligence**. Alat informasi dan analisis, bukan rekome
 
 ## Alur utama
 
-1. Tinjau Dashboard dengan cakupan saham yang benar-benar sudah dianalisis; aggregate hanya mewakili acquired subset, bukan seluruh IDX secara realtime.
-2. Filter Market Scanner menurut fase, confidence, evidence basis, broker flow, relative volume, alert, sektor dan watchlist.
-3. Buka Stock Intelligence untuk chart TradingView, empat fase, cycle/replay, lalu baca **FlowPhase Evidence** yang memisahkan supporting evidence, evidence against, coverage, data quality, dan phase-score comparison.
-4. Bedakan **SECTORS-BACKED FLOWPHASE CANDIDATE** dari **PRICE-VOLUME CANDIDATE ONLY**. Price-volume-only tidak dipresentasikan sebagai full FlowPhase signal.
-5. Periksa observed broker inventory delta, crossing-risk proxy, ownership/foreign-flow context, dan alerts beserta provenance serta limitation-nya.
+1. Buka **Market Radar** untuk menemukan kandidat riset dari Sectors Top Movers + Most Traded; kandidat yang muncul dari dua feed independen diprioritaskan, sementara foreign flow hanya menjadi konteks.
+2. Dari Radar, jalankan **Analyze with FlowPhase** untuk kandidat yang belum dianalisis, lalu lanjut ke Stock Intelligence tanpa workflow terpisah.
+3. Tinjau Dashboard dengan cakupan saham yang benar-benar sudah dianalisis; aggregate hanya mewakili acquired subset, bukan seluruh IDX secara realtime.
+4. Filter Market Scanner menurut fase, confidence, evidence basis, broker flow, relative volume, alert, sektor dan watchlist.
+5. Buka Stock Intelligence untuk chart TradingView, empat fase, cycle/replay, lalu baca **FlowPhase Evidence** yang memisahkan supporting evidence, evidence against, coverage, data quality, dan phase-score comparison.
+6. Bedakan **SECTORS-BACKED FLOWPHASE CANDIDATE** dari **PRICE-VOLUME CANDIDATE ONLY**. Price-volume-only tidak dipresentasikan sebagai full FlowPhase signal.
+7. Periksa observed broker inventory delta, crossing-risk proxy, ownership/foreign-flow context, dan alerts beserta provenance serta limitation-nya.
 
 Tanpa Sectors, FlowPhase kehilangan universe, company/free-float/ownership research, broker-flow evidence, dan status **Sectors-backed** pada phase signal. TradingView OHLCV tetap dapat menghasilkan price-volume candidate sebagai konteks terbatas, tetapi bukan full FlowPhase evidence signal.
 
@@ -40,17 +42,20 @@ Buka http://127.0.0.1:3000. Build produksi: `npm run build`, lalu `npm start`. B
 | Ticker, nama, klasifikasi | Sectors `/v2/companies/`, semua halaman, validasi total/duplikasi |
 | Free float                | Sectors `/v2/free-float/`; rasio 0–1 ditampilkan sebagai persen   |
 | Broker flow               | Sectors `/v2/broker-summary/{symbol}/`, per saham yang dibuka     |
+| Broker cohort metadata    | Sectors `/v2/brokers/`, authoritative broker registry             |
+| Radar discovery           | Sectors `/v2/companies/top-changes/` + `/v2/most-traded/`         |
+| Foreign flow context      | Sectors `/v2/foreign-flow/{symbol}/`, bounded to top Radar rows    |
 | OHLCV                     | `@mathieuc/tradingview` server-only; renderer Lightweight Charts  |
 | Phase candidates          | Model deterministik; TradingView OHLCV + Sectors broker evidence bila tersedia |
 | Watchlist                 | Browser lokal, penyimpanan produksi terpisah dari demo            |
 
 Verifikasi langsung 17 September 2026: 962 saham, 962 klasifikasi sektor/subsektor, 961 nilai free float. Ini hasil pengamatan, bukan konstanta aplikasi. Data hilang ditampilkan **Unavailable**, bukan nol/fixture.
 
-Cache direktori/free float 24 jam; intelligence 15 menit dengan maksimal tiga jendela broker 14 hari per saham. Endpoint broker lama tetap memakai cache 5 menit. Hasil analisis disimpan lokal di `.flowphase/` (diabaikan Git); scanner memproses batch maksimal lima saham secara eksplisit. Satu refresh penuh pada cakupan tersebut sekitar 20 kredit Sectors, belum termasuk broker flow. Tidak ada polling seluruh bursa. Lihat [integrasi Sectors](docs/sectors.md).
+Cache direktori/free float 24 jam; intelligence 15 menit dengan maksimal tiga jendela broker 14 hari per saham. Endpoint broker lama tetap memakai cache 5 menit. Hasil analisis disimpan lokal di `.flowphase/` (diabaikan Git); scanner memproses batch maksimal lima saham secara eksplisit. Satu refresh penuh pada cakupan tersebut sekitar 20 kredit Sectors, belum termasuk broker flow. Cold refresh Market Radar memakai 2 kredit Top Movers + 2 kredit Most Traded + maksimal 10 foreign-flow candidate calls; hasil ranking di-cache 5 menit dan foreign flow 15 menit. Broker Registry memakai 1 kredit dan di-cache 24 jam. Tidak ada polling seluruh bursa. Lihat [integrasi Sectors](docs/sectors.md).
 
 ## Routes dan pengujian
 
-Navigasi utama: `/`, `/scanner`, `/stocks`, `/alerts`, `/methodology`. Detail: `/stocks/[ticker]`. Route broker/replay lama mengarahkan ke Stock Intelligence; watchlist dan settings tetap tersedia.
+Navigasi utama: `/`, `/radar`, `/scanner`, `/stocks`, `/alerts`, `/methodology`. Detail: `/stocks/[ticker]`. Route broker/replay lama mengarahkan ke Stock Intelligence; watchlist dan settings tetap tersedia.
 
 ```sh
 npm run lint
@@ -69,12 +74,13 @@ CI menjalankan lint, unit tests, build dan pemeriksaan file publik tanpa kredens
 
 Produksi adalah default. `FLOWPHASE_MODE=demo` membuka fixture lama; restart server setelah perubahan mode. Tidak ada fallback demo saat provider gagal.
 
-Confidence adalah kekuatan aturan, bukan peluang profit; belum ada validasi prediktif independen. Label institutional-associated adalah klasifikasi/proxy riset, bukan identitas beneficial owner. Broker flow bukan kepemilikan manfaat, free float bukan likuiditas eksekusi. Realtime entitlement/delay TradingView belum terverifikasi. Stream dibatasi 55 detik dan bisa diaktifkan lagi. Deployment publik memerlukan kontrol akses/kuota bersama; deployment tidak wajib untuk lomba.
+Confidence adalah kekuatan aturan, bukan peluang profit; belum ada validasi prediktif independen. Label institutional-associated menggunakan cohort metadata Sectors Broker Registry bila tersedia; metadata tersebut tetap bukan identitas beneficial owner. Jika registry gagal diambil, FlowPhase menandai fallback heuristic ber-confidence rendah. Broker flow bukan kepemilikan manfaat, free float bukan likuiditas eksekusi. Realtime entitlement/delay TradingView belum terverifikasi. Stream dibatasi 55 detik dan bisa diaktifkan lagi. Deployment publik memerlukan kontrol akses/kuota bersama; deployment tidak wajib untuk lomba.
 
 - [Checklist dan draft video submission](docs/submission.md)
 - [Laporan upgrade intelligence dan validasi](docs/intelligence-upgrade.md)
 - [Arsitektur](docs/architecture.md)
 - [Integrasi Sectors](docs/sectors.md)
+- [Market Radar](docs/market-radar.md)
 - [Integrasi TradingView](docs/tradingview.md)
 - [Aturan phase regions](docs/phase-regions.md)
 

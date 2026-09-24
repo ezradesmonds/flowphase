@@ -1,6 +1,6 @@
 import type { MarketCandle } from "@/domain/chart-market";
 import type { PhaseRegion, BrokerFlow } from "@/domain/market";
-import type { MarketAlert } from "@/domain/intelligence";
+import type { BrokerProfile, MarketAlert } from "@/domain/intelligence";
 import { ANALYSIS_RULES } from "@/config/analysis";
 import { brokerProfile } from "@/config/brokers";
 import { baseline, priceVolume } from "./price-volume";
@@ -76,6 +76,7 @@ export function volumeAlerts(
 export function brokerAlerts(
   ticker: string,
   flows: readonly BrokerFlow[],
+  registry?: readonly BrokerProfile[],
 ): MarketAlert[] {
   const codes = [
     ...new Set(
@@ -98,7 +99,7 @@ export function brokerAlerts(
       a.date.localeCompare(b.date),
     );
     rows.forEach((r, i) => {
-      const profile = brokerProfile(code, undefined, r.date, ticker);
+      const profile = brokerProfile(code, registry, r.date, ticker);
       if (profile.classification !== "INSTITUTIONAL_ASSOCIATED") return;
       if (i < ANALYSIS_RULES.baseline) return;
       const prior = rows.slice(i - ANALYSIS_RULES.baseline, i),
@@ -156,7 +157,9 @@ export function brokerAlerts(
         ],
         warnings: [
           "Daily aggregate block-flow proxy, not evidence of an individual block trade.",
-          "Broker classification is an unvalidated user heuristic; a broker represents multiple clients.",
+          profile.source === "VERIFIED_METADATA"
+            ? "Sectors broker cohort metadata describes the exchange member, not the beneficial owner behind an individual trade."
+            : "Broker classification fallback is heuristic; a broker represents multiple clients.",
           "Reported sessions may have gaps. Timestamp denotes session date at 16:00 WIB, not execution time.",
         ],
         dataSource: ["Sectors daily broker summary", "FlowPhase Algorithm"],

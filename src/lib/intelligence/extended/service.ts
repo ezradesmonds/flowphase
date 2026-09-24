@@ -1,9 +1,8 @@
 import "server-only";
 import { RULES } from "./model";
 import { unstable_cache } from "next/cache";
-import { z } from "zod";
 import { sectorsFetch } from "@/lib/sectors/client";
-import { sectorSymbol } from "@/lib/sectors/schemas";
+import { foreignFlowSchema } from "@/lib/sectors/schemas";
 import { sectorsRepository } from "@/lib/repositories/sectors-repository";
 import { getIntelligence, listAnalyses } from "../store";
 import { normalizeOwnership } from "./ownership";
@@ -16,6 +15,7 @@ import {
 } from "@/config/relationships";
 import { envelope, type Meta } from "./model";
 import { persist, storedOwnership } from "./persistence";
+import { getSectorsBrokerRegistry } from "@/lib/sectors/brokers";
 export async function requireSymbol(symbol: string) {
   if (!/^[A-Z]{4}$/.test(symbol)) throw new Error("Invalid symbol");
   const universe = await sectorsRepository.listStocks();
@@ -52,19 +52,35 @@ export async function phaseInventory(
   end?: string,
 ) {
   await requireSymbol(symbol);
-  const a = await getIntelligence(symbol),
-    rows = inventoryByPhase(a, start, end, BROKER_AFFILIATIONS);
+  const [a, registry] = await Promise.all([
+    getIntelligence(symbol),
+    getSectorsBrokerRegistry().catch(() => undefined),
+  ]);
+  const rows = inventoryByPhase(
+    a,
+    start,
+    end,
+    BROKER_AFFILIATIONS,
+    registry,
+  );
   await persist("broker_phase_snapshots", symbol, rows);
   return { analysis: a, rows };
 }
 export async function brokerUniverse() {
-  const [analyses, universe] = await Promise.all([
+  const [analyses, universe, registry] = await Promise.all([
     listAnalyses(),
     sectorsRepository.listStocks(),
+    getSectorsBrokerRegistry().catch(() => undefined),
   ]);
   return {
     rows: analyses.flatMap((a) =>
-      inventoryByPhase(a, undefined, undefined, BROKER_AFFILIATIONS)
+      inventoryByPhase(
+        a,
+        undefined,
+        undefined,
+        BROKER_AFFILIATIONS,
+        registry,
+      )
         .filter((r) => r.phase === "CUSTOM")
         .map((r) => ({
           ...r,
@@ -82,9 +98,10 @@ export async function brokerUniverse() {
   };
 }
 export async function market() {
-  const [analyses, universe] = await Promise.all([
+  const [analyses, universe, registry] = await Promise.all([
     listAnalyses(),
     sectorsRepository.listStocks(),
+    getSectorsBrokerRegistry().catch(() => undefined),
   ]);
   const foreign: Record<
     string,
@@ -103,27 +120,22 @@ export async function market() {
       /* per-stock missing stays null */
     }
   }
-  const data = marketActivity(analyses, universe.stocks, foreign);
+  const data = marketActivity(
+    analyses,
+    universe.stocks,
+    foreign,
+    new Date().toISOString(),
+    registry,
+  );
   if (analyses.length > RULES.marketForeignFetchLimit)
     data.meta.quality_flags.push("FOREIGN_FETCH_LIMIT_REACHED");
   await persist("sector_snapshots", "market", data);
   return data;
 }
-const foreignSchema = z.object({
-  symbol: sectorSymbol,
-  data: z.array(
-    z.object({
-      date: z.iso.date(),
-      foreign_buy_idr: z.number().finite().nonnegative().nullish(),
-      foreign_sell_idr: z.number().finite().nonnegative().nullish(),
-      net_foreign_inflow: z.number().finite().nullish(),
-    }),
-  ),
-});
 export const foreignFlow = unstable_cache(
   async (symbol: string) => {
     await requireSymbol(symbol);
-    const raw = foreignSchema.parse(
+    const raw = foreignFlowSchema.parse(
       await sectorsFetch(`/foreign-flow/${symbol}/`),
     );
     if (raw.symbol !== symbol) throw new Error("Identity mismatch");

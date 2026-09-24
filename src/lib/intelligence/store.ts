@@ -10,6 +10,7 @@ import { getBrokerHistory } from "./broker-history";
 import { analyze, sessionDate } from "./analyze";
 import { mergeBrokerHistory } from "./history";
 import { ALGORITHM_VERSION, PHASE_CONFIG } from "@/config/phases";
+import { getSectorsBrokerRegistry } from "@/lib/sectors/brokers";
 // Preserve v1 verbatim; combined legacy labels need rescoring, not renaming.
 const directory = path.join(process.cwd(), ".flowphase", "analysis-v2");
 const pending = new Map<string, Promise<Intelligence>>();
@@ -41,8 +42,21 @@ export async function getIntelligence(ticker: string): Promise<Intelligence> {
   ticker = ticker.toUpperCase();
   if (!/^[A-Z]{4}$/.test(ticker)) throw new Error("Invalid ticker");
   const previous = await read(ticker);
+  let brokerRegistry;
+  try {
+    brokerRegistry = await getSectorsBrokerRegistry();
+  } catch {
+    brokerRegistry = undefined;
+  }
+  const authoritativeBrokerMetadataPresent =
+    !brokerRegistry ||
+    !previous?.inventory.some(
+      (row) =>
+        row.profile.source === "USER_HEURISTIC" && row.profile.confidence > 0,
+    );
   if (
     previous &&
+    authoritativeBrokerMetadataPresent &&
     previous.algorithmVersion === ALGORITHM_VERSION &&
     previous.configVersion === PHASE_CONFIG.version &&
     previous.candles !== null &&
@@ -92,7 +106,13 @@ export async function getIntelligence(ticker: string): Promise<Intelligence> {
         candles: [...merged.values()].sort((a, b) => a.time - b.time),
       };
     }
-    const result = analyze(ticker, snapshot, broker);
+    const result = analyze(
+      ticker,
+      snapshot,
+      broker,
+      new Date().toISOString(),
+      brokerRegistry,
+    );
     await mkdir(directory, { recursive: true });
     const temp = path.join(directory, `${ticker}.${randomUUID()}.tmp`);
     await writeFile(temp, JSON.stringify(result), "utf8");
