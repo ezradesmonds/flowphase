@@ -217,7 +217,7 @@ button:disabled {
   top: 10px;
 }
 
-/* ── Bloomberg Top Terminal Ribbon (Live Market Ticker Tape) ── */
+/* ── Top Research Provenance & Session Ribbon ── */
 .terminal-ticker-tape {
   height: 26px;
   background: #020407;
@@ -268,6 +268,23 @@ button:disabled {
 }
 .ticker-value {
   color: var(--text-dim);
+}
+
+.terminal-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+.terminal-source-pill strong {
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+.terminal-source-divider {
+  color: var(--muted-dark);
 }
 
 .terminal-ticker-status {
@@ -813,4 +830,338 @@ select {
   .shell-sidebar.mobile-open {
     transform: translateX(0);
   }
+}
+
+/* ── FlowPhase Evidence & Signal V3 ── */
+.evidence-v3 {
+  border-top: 2px solid var(--cyan);
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.025), transparent 150px), var(--surface);
+}
+
+.phase-broker-heading,
+.phase-broker-section-heading,
+.phase-scoreboard-heading,
+.evidence-column-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.phase-broker-heading {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.phase-broker-heading small,
+.signal-basis-banner small,
+.evidence-metric-grid small {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.phase-broker-heading h3 {
+  margin-top: 2px;
+  font-size: 16px;
+  color: var(--text-bright);
+}
+
+.phase-broker-heading > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.signal-basis-banner {
+  margin: 10px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.85fr) 1.6fr;
+  gap: 14px;
+  border: 1px solid var(--border-strong);
+  background: #050a11;
+}
+
+.signal-basis-banner.verified {
+  border-left: 3px solid var(--green);
+}
+
+.signal-basis-banner.limited {
+  border-left: 3px solid var(--amber);
+}
+
+.signal-basis-banner strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-bright);
+  font-size: 12px;
+}
+
+.signal-basis-banner p,
+.phase-scoreboard-heading p,
+.phase-broker-section-heading p {
+  color: var(--text-dim);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.evidence-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 0 10px 10px;
+}
+
+.evidence-metric-grid > div {
+  min-height: 78px;
+  padding: 9px;
+  background: #050a11;
+  border: 1px solid var(--border);
+}
+
+.evidence-metric-grid strong {
+  display: block;
+  margin: 4px 0 2px;
+  color: var(--cyan);
+  font-size: 18px;
+}
+
+.evidence-metric-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 9.5px;
+}
+
+.phase-scoreboard {
+  margin: 0 10px 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: #050a11;
+}
+
+.phase-scoreboard-heading h4,
+.evidence-column-heading h4,
+.phase-broker-section h4,
+.evidence-audit-details h4 {
+  color: var(--text-bright);
+  font-size: 11px;
+  margin: 0;
+}
+
+.phase-scoreboard-heading > span,
+.phase-broker-section-heading > span,
+.evidence-column-heading > span {
+  color: var(--muted);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.phase-scoreboard-grid {
+  margin-top: 8px;
+  display: grid;
+  gap: 5px;
+}
+
+.phase-score-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 48px;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.phase-score-row > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phase-score-row small {
+  color: var(--amber);
+  font-size: 8px;
+}
+
+.phase-score-row b {
+  text-align: right;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.evidence-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 0 10px 10px;
+}
+
+.evidence-column {
+  border: 1px solid var(--border);
+  background: #050a11;
+  padding: 10px;
+}
+
+.evidence-column.supporting {
+  border-top: 2px solid var(--green);
+}
+
+.evidence-column.against {
+  border-top: 2px solid var(--amber);
+}
+
+.evidence-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 5px;
+}
+
+.evidence-column li {
+  position: relative;
+  padding: 7px 48px 7px 8px;
+  border: 1px solid var(--border-subtle);
+  background: #03070c;
+}
+
+.evidence-column li strong,
+.evidence-column li small,
+.evidence-column li p {
+  display: block;
+}
+
+.evidence-column li strong {
+  color: var(--text);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.evidence-column li small {
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 8.5px;
+}
+
+.evidence-column li p {
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.evidence-column li > b {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  color: var(--cyan);
+  font-size: 11px;
+}
+
+.phase-broker-section {
+  margin: 0 10px 10px;
+  padding: 10px;
+  background: #050a11;
+  border: 1px solid var(--border);
+}
+
+.phase-broker-section-heading {
+  margin-bottom: 8px;
+}
+
+.phase-broker-empty {
+  padding: 12px;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-dim);
+}
+
+.phase-broker-empty strong {
+  color: var(--amber);
+  font-size: 11px;
+}
+
+.phase-broker-empty p,
+.phase-broker-empty small {
+  margin-top: 4px;
+  display: block;
+  font-size: 10px;
+}
+
+.evidence-audit-details {
+  margin: 0 10px 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: #03070c;
+}
+
+.evidence-audit-details summary {
+  color: var(--cyan);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.evidence-audit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.evidence-audit-grid ul,
+.phase-evidence-list {
+  margin: 5px 0 0;
+  padding-left: 18px;
+  color: var(--text-dim);
+  font-size: 9.5px;
+}
+
+@media (max-width: 900px) {
+  .signal-basis-banner,
+  .evidence-columns,
+  .evidence-audit-grid {
+    grid-template-columns: 1fr;
+  }
+  .evidence-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .phase-score-row {
+    grid-template-columns: 120px 1fr 42px;
+  }
+}
+
+@media (max-width: 560px) {
+  .evidence-metric-grid {
+    grid-template-columns: 1fr;
+  }
+  .phase-broker-heading,
+  .phase-broker-section-heading,
+  .phase-scoreboard-heading,
+  .evidence-column-heading {
+    flex-direction: column;
+  }
+}
+
+.evidence-basis-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 5px;
+  border: 1px solid var(--border-strong);
+  background: #050a11;
+  color: var(--muted);
+  font-size: 8.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.evidence-basis-pill.sectors-backed {
+  color: var(--green);
+  border-color: color-mix(in srgb, var(--green) 45%, var(--border));
+  background: color-mix(in srgb, var(--green) 7%, #050a11);
+}
+
+.evidence-basis-pill.price-only {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 45%, var(--border));
+  background: color-mix(in srgb, var(--amber) 7%, #050a11);
 }

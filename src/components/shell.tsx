@@ -46,7 +46,8 @@ function getIdxMarketStatus() {
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
   const wib = new Date(utc + 7 * 3600000);
   const day = wib.getDay();
-  if (day === 0 || day === 6) return { isOpen: false, label: "IDX CLOSED", session: "WEEKEND" };
+  if (day === 0 || day === 6)
+    return { isOpen: false, label: "IDX SESSION OFF", session: "WEEKEND" };
   const hour = wib.getHours();
   const minute = wib.getMinutes();
   const timeNum = hour * 100 + minute;
@@ -54,10 +55,13 @@ function getIdxMarketStatus() {
   const session1End = isFriday ? 1130 : 1200;
   const inSession1 = timeNum >= 900 && timeNum < session1End;
   const inSession2 = timeNum >= 1330 && timeNum < 1600;
-  if (inSession1) return { isOpen: true, label: "IDX OPEN", session: "SESSION 1" };
-  if (inSession2) return { isOpen: true, label: "IDX OPEN", session: "SESSION 2" };
-  if (timeNum >= session1End && timeNum < 1330) return { isOpen: false, label: "IDX BREAK", session: "INTERMISSION" };
-  return { isOpen: false, label: "IDX CLOSED", session: "AFTER HOURS" };
+  if (inSession1)
+    return { isOpen: true, label: "IDX SESSION WINDOW", session: "S1 CLOCK" };
+  if (inSession2)
+    return { isOpen: true, label: "IDX SESSION WINDOW", session: "S2 CLOCK" };
+  if (timeNum >= session1End && timeNum < 1330)
+    return { isOpen: false, label: "IDX BREAK WINDOW", session: "INTERMISSION" };
+  return { isOpen: false, label: "IDX SESSION OFF", session: "AFTER HOURS" };
 }
 
 export function Shell({
@@ -76,7 +80,7 @@ export function Shell({
   const [marketStatus, setMarketStatus] = useState(getIdxMarketStatus());
   const [wibTime, setWibTime] = useState("");
 
-  // Live Market Clock & Market Status
+  // Jakarta clock and nominal IDX session windows. This is not an exchange-status feed.
   useEffect(() => {
     setMounted(true);
     const updateTime = () => {
@@ -153,60 +157,29 @@ export function Shell({
         SKIP TO DATA WORKSPACE [ENTER]
       </a>
 
-      {/* ── 1. BLOOMBERG TERMINAL TOP TICKER RIBBON (TAPE) ── */}
-      <div className="terminal-ticker-tape" role="region" aria-label="Live Market Tape">
+      {/* ── 1. DATA-PROVENANCE & IDX SESSION RIBBON ── */}
+      <div
+        className="terminal-ticker-tape"
+        role="region"
+        aria-label="Data provenance and IDX session status"
+      >
         <div className="terminal-ticker-prefix">
           <Terminal size={12} className="text-amber" />
-          <span>FLOWPHASE // IDX TERMINAL</span>
+          <span>FLOWPHASE // IDX RESEARCH</span>
         </div>
 
-        <div className="terminal-ticker-scroll">
-          <div className="ticker-item">
-            <span className="ticker-symbol">IHSG</span>
-            <span className="ticker-value">7,812.40</span>
-            <span className="positive">+0.48%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">BBCA</span>
-            <span className="ticker-value">10,350</span>
-            <span className="positive">+1.22%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">BBRI</span>
-            <span className="ticker-value">5,150</span>
-            <span className="negative">-0.48%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">BMRI</span>
-            <span className="ticker-value">6,925</span>
-            <span className="positive">+0.73%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">TLKM</span>
-            <span className="ticker-value">3,010</span>
-            <span className="negative">-1.31%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">ASII</span>
-            <span className="ticker-value">5,200</span>
-            <span className="positive">+0.97%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">USD/IDR</span>
-            <span className="ticker-value">15,485</span>
-            <span className="negative">-0.12%</span>
-          </div>
-          <span className="text-muted">|</span>
-          <div className="ticker-item">
-            <span className="ticker-symbol">FOREIGN NET (EST)</span>
-            <span className="positive">+482.6B IDR</span>
-          </div>
+        <div className="terminal-ticker-scroll" aria-label="Research data sources">
+          <span className="terminal-source-pill">
+            <strong>SECTORS</strong> COMPANY · BROKER · OWNERSHIP
+          </span>
+          <span className="terminal-source-divider">|</span>
+          <span className="terminal-source-pill">
+            <strong>TRADINGVIEW</strong> PRICE · VOLUME
+          </span>
+          <span className="terminal-source-divider">|</span>
+          <span className="terminal-source-pill">
+            <strong>SIGNALS</strong> ON-DEMAND · CACHED · EXPLAINABLE
+          </span>
         </div>
 
         <div className="terminal-ticker-status">

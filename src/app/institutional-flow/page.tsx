@@ -6,10 +6,11 @@ import { listAnalyses } from "@/lib/intelligence/store";
 export default async function Page() {
   return (
     <>
-      <h1>Institutional Flow</h1>
+      <h1>Institutional-Associated Broker Flow</h1>
       <p>
-        Observed broker behavior proxies. Crossing-heavy rows carry a confidence
-        penalty; gross flow is never treated as clean accumulation.
+        Observed broker-behavior proxies. The institutional-associated label is a
+        research classification, not verified beneficial ownership. Crossing-heavy
+        rows carry a confidence penalty; gross flow is never treated as clean accumulation.
       </p>
       <BrokerStalker data={await brokerUniverse()} />
       <ExtendedAlerts alerts={(await listAnalyses()).flatMap(extendedAlerts)} />

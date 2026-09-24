@@ -1,18 +1,18 @@
 # FlowPhase
 
-**FlowPhase membantu periset saham IDX menyusun shortlist dan memahami struktur free float serta partisipasi broker dari Sectors, lalu memeriksa konteks harga melalui chart TradingView.**
+**FlowPhase mengubah data broker, ownership, free float, dan company intelligence dari Sectors menjadi kandidat fase pasar IDX yang explainable, lalu menggabungkannya dengan konteks price-volume TradingView agar periset bisa melihat bukan hanya fase yang terdeteksi, tetapi juga alasan dan keterbatasan buktinya.**
 
 Track: **03 — Market Intelligence**. Alat informasi dan analisis, bukan rekomendasi investasi. Tidak ada pengiriman atau eksekusi order.
 
 ## Alur utama
 
-1. Tinjau Dashboard dengan cakupan saham yang benar-benar sudah dianalisis.
-2. Filter Market Scanner menurut fase, confidence, broker flow, relative volume, alert, sektor dan watchlist.
-3. Buka Stock Intelligence untuk chart TradingView, empat fase, cycle/replay dan bukti setiap periode.
-4. Periksa estimasi inventory broker, klasifikasi heuristic dan alert berbasis baseline historis.
-5. Buka Alerts untuk memeriksa evidence, batasan dan sumber peristiwa.
+1. Tinjau Dashboard dengan cakupan saham yang benar-benar sudah dianalisis; aggregate hanya mewakili acquired subset, bukan seluruh IDX secara realtime.
+2. Filter Market Scanner menurut fase, confidence, evidence basis, broker flow, relative volume, alert, sektor dan watchlist.
+3. Buka Stock Intelligence untuk chart TradingView, empat fase, cycle/replay, lalu baca **FlowPhase Evidence** yang memisahkan supporting evidence, evidence against, coverage, data quality, dan phase-score comparison.
+4. Bedakan **SECTORS-BACKED FLOWPHASE CANDIDATE** dari **PRICE-VOLUME CANDIDATE ONLY**. Price-volume-only tidak dipresentasikan sebagai full FlowPhase signal.
+5. Periksa observed broker inventory delta, crossing-risk proxy, ownership/foreign-flow context, dan alerts beserta provenance serta limitation-nya.
 
-Tanpa Sectors, direktori, filter, identitas perusahaan, perbandingan free float dan analisis broker tidak dapat bekerja. Chart adalah konteks tambahan; OHLCV tetap eksklusif dari TradingView.
+Tanpa Sectors, FlowPhase kehilangan universe, company/free-float/ownership research, broker-flow evidence, dan status **Sectors-backed** pada phase signal. TradingView OHLCV tetap dapat menghasilkan price-volume candidate sebagai konteks terbatas, tetapi bukan full FlowPhase evidence signal.
 
 ## Menjalankan aplikasi
 
@@ -41,7 +41,7 @@ Buka http://127.0.0.1:3000. Build produksi: `npm run build`, lalu `npm start`. B
 | Free float                | Sectors `/v2/free-float/`; rasio 0–1 ditampilkan sebagai persen   |
 | Broker flow               | Sectors `/v2/broker-summary/{symbol}/`, per saham yang dibuka     |
 | OHLCV                     | `@mathieuc/tradingview` server-only; renderer Lightweight Charts  |
-| Phase regions             | Perhitungan deterministik dari candle TradingView yang dimuat     |
+| Phase candidates          | Model deterministik; TradingView OHLCV + Sectors broker evidence bila tersedia |
 | Watchlist                 | Browser lokal, penyimpanan produksi terpisah dari demo            |
 
 Verifikasi langsung 17 September 2026: 962 saham, 962 klasifikasi sektor/subsektor, 961 nilai free float. Ini hasil pengamatan, bukan konstanta aplikasi. Data hilang ditampilkan **Unavailable**, bukan nol/fixture.
@@ -69,7 +69,7 @@ CI menjalankan lint, unit tests, build dan pemeriksaan file publik tanpa kredens
 
 Produksi adalah default. `FLOWPHASE_MODE=demo` membuka fixture lama; restart server setelah perubahan mode. Tidak ada fallback demo saat provider gagal.
 
-Confidence adalah kekuatan aturan, bukan peluang profit; belum ada validasi prediktif independen. Broker flow bukan kepemilikan manfaat, free float bukan likuiditas eksekusi. Realtime entitlement/delay TradingView belum terverifikasi. Stream dibatasi 55 detik dan bisa diaktifkan lagi. Deployment publik memerlukan kontrol akses/kuota bersama; deployment tidak wajib untuk lomba.
+Confidence adalah kekuatan aturan, bukan peluang profit; belum ada validasi prediktif independen. Label institutional-associated adalah klasifikasi/proxy riset, bukan identitas beneficial owner. Broker flow bukan kepemilikan manfaat, free float bukan likuiditas eksekusi. Realtime entitlement/delay TradingView belum terverifikasi. Stream dibatasi 55 detik dan bisa diaktifkan lagi. Deployment publik memerlukan kontrol akses/kuota bersama; deployment tidak wajib untuk lomba.
 
 - [Checklist dan draft video submission](docs/submission.md)
 - [Laporan upgrade intelligence dan validasi](docs/intelligence-upgrade.md)

@@ -416,7 +416,7 @@ export function StockDirectory({
           </div>
 
           <div className="filter-group">
-            <span className="filter-label">MIN CONF:</span>
+            <span className="filter-label">MIN SCORE:</span>
             <input
               type="number"
               min="0"
@@ -433,8 +433,8 @@ export function StockDirectory({
             <select value={flow} onChange={(e) => setFlow(e.target.value)}>
               <option value="">ANY FLOW</option>
               {[
-                "institutional buy",
-                "institutional sell",
+                "institutional-associated buy",
+                "institutional-associated sell",
                 "retail buy",
                 "retail sell",
               ].map((p) => (
@@ -487,7 +487,7 @@ export function StockDirectory({
               <option value="menggoreng">MENGGORENG SIGNALS</option>
               <option value="distribusi">DISTRIBUSI CONFIDENCE</option>
               <option value="alert">NEWEST ACTIVE ALERT</option>
-              <option value="confidence">HIGHEST CONFIDENCE</option>
+              <option value="confidence">HIGHEST EVIDENCE SCORE</option>
               <option value="volume">HIGHEST RVOL</option>
               <option value="ticker">TICKER (A-Z)</option>
               <option value="float">FREE FLOAT (DESC)</option>
@@ -538,7 +538,8 @@ export function StockDirectory({
                 {[
                   "TICKER",
                   "COMPANY",
-                  "PHASE / CONFIDENCE",
+                  "PHASE / EVIDENCE SCORE",
+                  "EVIDENCE BASIS",
                   "COVERAGE",
                   "PHASE START",
                   "DURATION",
@@ -546,7 +547,7 @@ export function StockDirectory({
                   "TOP BUYER",
                   "TOP SELLER",
                   "CROSSING RISK",
-                  "INSTITUTIONAL LOTS",
+                  "INST-ASSOC. PROXY LOTS",
                   "RETAIL LOTS",
                   "RVOL",
                   "LATEST ALERT",
@@ -591,6 +592,25 @@ export function StockDirectory({
                           >
                             {loadingTicker === stock.ticker ? "ACQUIRING..." : "ANALYZE"}
                           </button>
+                        )}
+                      </td>
+                      <td>
+                        {isAnalyzed ? (
+                          <span
+                            className={`evidence-basis-pill ${
+                              a!.evidenceBasis === "BROKER_SUPPORTED"
+                                ? "sectors-backed"
+                                : "price-only"
+                            }`}
+                          >
+                            {a!.evidenceBasis === "BROKER_SUPPORTED"
+                              ? "SECTORS-BACKED"
+                              : a!.evidenceBasis === "PRICE_VOLUME_ONLY"
+                                ? "PRICE-VOLUME ONLY"
+                                : "INSUFFICIENT"}
+                          </span>
+                        ) : (
+                          "—"
                         )}
                       </td>
                       <td className="tabular-nums text-slate-400">

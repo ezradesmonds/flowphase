@@ -38,7 +38,7 @@ export function AlertCenter({ analyses }: { analyses: Intelligence[] }) {
       <PageHeading
         eyebrow="FLOWPHASE // SURVEILLANCE FEED"
         title="MARKET INTELLIGENCE ALERT CENTER"
-        description="Real-time and batch explainable signal triggers across price volume anomalies and broker inventory delta."
+        description="Current-analysis and historical batch signals across price-volume anomalies and observed broker inventory deltas. NEW means latest analysed session, not realtime."
       />
 
       {/* Severity HUD Buttons */}

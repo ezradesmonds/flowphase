@@ -8,6 +8,8 @@ export function analysisSummary(a: Intelligence) {
     state: a.state,
     marketCondition: a.marketCondition,
     label: a.regions.at(-1)?.label ?? "INSUFFICIENT DATA",
+    evidenceBasis:
+      a.regions.at(-1)?.brokerEvidence ?? "INSUFFICIENT_DATA",
     phaseStart: a.regions.at(-1)?.startTimestamp ?? null,
     phaseDuration: a.regions.length
       ? (a.candles?.candles.filter(

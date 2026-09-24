@@ -6,9 +6,9 @@ Based on rules supplied by the user on 18 September 2026. This is a preparation 
 
 Track: **03 — Market Intelligence**.
 
-Problem statement: **FlowPhase membantu periset saham IDX menyusun shortlist berbasis struktur free float dan partisipasi broker dari Sectors, lalu memeriksa konteks harga tanpa menganggap transaksi broker sebagai kepemilikan atau rekomendasi investasi.**
+Problem statement: **FlowPhase mengubah broker flow, ownership, free float, dan company intelligence dari Sectors menjadi kandidat fase pasar IDX yang explainable, lalu menggabungkannya dengan price-volume context untuk menunjukkan bukan hanya “fase apa”, tetapi “kenapa model menilainya begitu” dan bukti apa yang masih hilang.**
 
-Workflow: filter Sectors companies → compare subsector free float → inspect broker participation → review TradingView phases → save shortlist. Sectors is indispensable to the universe and non-chart research evidence. Do not describe this as an AI agent: an LLM is not at the product's core. AI-assisted coding is permitted by the supplied rules.
+Workflow: scan analysed IDX subset → open a candidate → inspect **SECTORS-BACKED vs PRICE-VOLUME-ONLY evidence basis** → compare phase scores/supporting/opposing evidence → inspect Sectors broker/ownership context → replay causally. Sectors is indispensable to the full FlowPhase evidence signal: without Sectors broker evidence the product deliberately downgrades output to **PRICE-VOLUME CANDIDATE ONLY**. Do not describe this as an AI agent: an LLM is not at the product's core. AI-assisted coding is permitted by the supplied rules.
 
 ## Eligibility and submission checklist
 
@@ -31,17 +31,17 @@ Local Git setup is not public hosting, registration, submission or proof of onbo
 
 | Time      | What to show                                                                                                                         |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 0:00–0:20 | Audience and problem: IDX researchers comparing fragmented ownership-structure and broker information.                               |
-| 0:20–0:50 | Real Sectors universe, fetch date, sector and free-float filter. A research set, not a buy list.                                     |
-| 0:50–1:25 | Open a current result. Compare free float to subsector peers, including missing data limitations.                                    |
-| 1:25–2:00 | Broker participation and top-three gross-buy concentration, underlying rows/dates. No ownership or smart-money claim.                |
-| 2:00–2:30 | TradingView chart/phase boxes/timeframe change; confidence is heuristic, chart complements Sectors evidence.                         |
-| 2:30–2:50 | Save stock, reopen watchlist, explain reproducible research. Show a real unavailable state only if encountered; never fabricate one. |
-| 2:50–3:00 | Repository/source boundaries and research-only disclaimer.                                                                           |
+| 0:00–0:20 | Problem: price charts can show movement, but researchers still need explainable evidence for what market-cycle phase a stock may be entering. |
+| 0:20–0:45 | Dashboard/scanner: show only the **analysed subset**, phase candidates, confidence, coverage, and the new **evidence basis** column. |
+| 0:45–1:25 | Open a stock and show the chart plus **FlowPhase Evidence**: Sectors-backed status, four phase scores, supporting evidence, evidence against, coverage and data quality. |
+| 1:25–1:55 | Open broker rows for the selected phase. Explain observed net lots, crossing-risk penalty, and why broker aggregates are not beneficial ownership. |
+| 1:55–2:20 | Show ownership / foreign-flow / free-float context from Sectors. Make clear that these support research but do not prove manipulation or future return. |
+| 2:20–2:45 | Replay the chart causally. Regions are generated from revealed history; no future candle is fed into the classifier. |
+| 2:45–3:00 | Close with source boundary: Sectors powers the full evidence signal; without broker evidence FlowPhase visibly downgrades to **PRICE-VOLUME CANDIDATE ONLY**. Research tool, not a recommendation. |
 
-Teaser: problem 10s → filter 15s → Sectors peer/broker evidence 20s → chart/watchlist 10s → title/track 5s. Real screen capture; no fabricated performance or testimonials.
+Teaser: problem 10s → scanner/evidence-basis 10s → FlowPhase Evidence panel 20s → Sectors broker/ownership context 15s → title/track 5s. Real screen capture; no fabricated performance or testimonials.
 
-Social draft (not published): “Kami membangun FlowPhase untuk membantu riset saham IDX: mulai dari klasifikasi dan free float, membaca partisipasi broker dari Sectors, hingga memeriksa konteks harga. Alat informasi dan analisis, bukan rekomendasi investasi. [tautan proyek/video] [tag resmi dari portal].”
+Social draft (not published): “Kami membangun FlowPhase untuk mengubah data broker, ownership, free float, dan company intelligence dari Sectors menjadi kandidat fase pasar IDX yang explainable, lengkap dengan alasan pendukung, bukti yang berlawanan, dan konteks price-volume. Alat informasi dan analisis, bukan rekomendasi investasi. [tautan proyek/video] [tag resmi dari portal].”
 
 ## Remaining scoring priorities
 

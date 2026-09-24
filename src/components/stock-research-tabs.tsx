@@ -31,7 +31,7 @@ export function StockResearchTabs({ analysis }: { analysis: Intelligence }) {
           "Holder > 1%",
           "Holder > 5%",
           "Peta Investor",
-          "Institutional Flow",
+          "Institutional Proxy Flow",
           "Seasonality",
           "Money & Risk",
         ].map((t) => (
@@ -50,7 +50,7 @@ export function StockResearchTabs({ analysis }: { analysis: Intelligence }) {
         <HolderWorkspace symbol={analysis.ticker} minimumPercentage={5} />
       ) : tab === "Peta Investor" ? (
         <OwnershipWorkspace symbol={analysis.ticker} initialThreshold={1} />
-      ) : tab === "Institutional Flow" ? (
+      ) : tab === "Institutional Proxy Flow" ? (
         <>
           <ForeignFlowPanel symbol={analysis.ticker} />
           <ExtendedAlerts alerts={extendedAlerts(analysis)} />

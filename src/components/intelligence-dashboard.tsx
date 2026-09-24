@@ -154,6 +154,8 @@ export function IntelligenceDashboard({
         instNetValue: instGroup?.netValue ?? null,
         retailNetLot: retailGroup?.netLot ?? null,
         latestAlert,
+        evidenceBasis:
+          a.regions.at(-1)?.brokerEvidence ?? "INSUFFICIENT_DATA",
       };
     });
   }, [analyses, stockMap]);
@@ -279,7 +281,7 @@ export function IntelligenceDashboard({
         title: "Top Accumulation Candidate",
         item: accCandidates[0],
         badge: "AKUMULASI",
-        metric: `CONFIDENCE ${accCandidates[0].confidence}%`,
+        metric: `EVIDENCE ${accCandidates[0].confidence}%`,
       });
     }
 
@@ -307,7 +309,7 @@ export function IntelligenceDashboard({
         title: "Pompom Attention Candidate",
         item: pompomCandidate,
         badge: "POMPOM",
-        metric: `CONFIDENCE ${pompomCandidate.confidence}%`,
+        metric: `EVIDENCE ${pompomCandidate.confidence}%`,
       });
     }
 
@@ -319,7 +321,7 @@ export function IntelligenceDashboard({
         title: "Distribution Risk Warning",
         item: distWarning,
         badge: "DISTRIBUSI",
-        metric: `CONFIDENCE ${distWarning.confidence}%`,
+        metric: `EVIDENCE ${distWarning.confidence}%`,
       });
     }
 
@@ -328,7 +330,7 @@ export function IntelligenceDashboard({
       .sort((a, b) => (b.instNetLot ?? 0) - (a.instNetLot ?? 0))[0];
     if (topNetBuy && !list.some((c) => c.item.ticker === topNetBuy.ticker && c.badge === "FLOW")) {
       list.push({
-        title: "Largest Institutional Net Buy",
+        title: "Largest Institutional-Associated Net Buy Proxy",
         item: topNetBuy,
         badge: "FLOW",
         metric: `+${num(topNetBuy.instNetLot)} LOT`,
@@ -340,7 +342,7 @@ export function IntelligenceDashboard({
       .sort((a, b) => (a.instNetLot ?? 0) - (b.instNetLot ?? 0))[0];
     if (topNetSell) {
       list.push({
-        title: "Institutional Net Outflow",
+        title: "Institutional-Associated Net Sell Proxy",
         item: topNetSell,
         badge: "FLOW",
         metric: `${num(topNetSell.instNetLot)} LOT`,
@@ -560,11 +562,11 @@ export function IntelligenceDashboard({
   }, [analyses]);
 
   const lastUpdatedDisplay = useMemo(() => {
-    const raw = latestCalculation || universe.fetchedAt;
-    if (!raw) return "LIVE";
+    const raw = latestCalculation;
+    if (!raw) return "NOT ANALYSED";
     try {
       const d = new Date(raw);
-      if (isNaN(d.getTime())) return "LIVE";
+      if (isNaN(d.getTime())) return "UNKNOWN";
       return d.toLocaleDateString("en-GB", {
         day: "2-digit",
         month: "short",
@@ -572,9 +574,9 @@ export function IntelligenceDashboard({
         minute: "2-digit",
       });
     } catch {
-      return "LIVE";
+      return "UNKNOWN";
     }
-  }, [latestCalculation, universe.fetchedAt]);
+  }, [latestCalculation]);
 
   const instTotalNetLot = useMemo(() => {
     return analyses.reduce((sum, a) => {
@@ -610,10 +612,10 @@ export function IntelligenceDashboard({
               />
             </div>
             <h1 className="text-base sm:text-lg font-bold text-white tracking-tight uppercase">
-              INSTITUTIONAL FLOW & MARKET CYCLE COCKPIT
+              BROKER-FLOW & MARKET CYCLE COCKPIT
             </h1>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Price cycle phase classification · Accumulation/Distribution inventory tracking · Shareholder relations.
+              Explainable phase candidates · Sectors broker/ownership context · TradingView price-volume context.
             </p>
           </div>
 
@@ -685,7 +687,7 @@ export function IntelligenceDashboard({
 
           <div className="panel-footnote flex items-center justify-between">
             <span>SELECT SEGMENT TO FILTER WORKSTATION SCANNER</span>
-            <span className="text-amber">100% HEURISTIC DATA</span>
+            <span className="text-amber">RULE-BASED RESEARCH MODEL</span>
           </div>
         </div>
 
@@ -783,7 +785,7 @@ export function IntelligenceDashboard({
               <Flame size={13} className="text-amber" />
               <span>[MOD.02 // MARKET_PULSE]</span>
             </div>
-            <span className="panel-tag">LIVE BREADTH</span>
+            <span className="panel-tag">ANALYSED SUBSET</span>
           </div>
 
           <div className="p-3 space-y-3">
@@ -802,12 +804,13 @@ export function IntelligenceDashboard({
               </div>
               <p className="text-[11px] text-slate-300 leading-relaxed">
                 {dominantPhase.phase === "AKUMULASI"
-                  ? "Institutional buying pressure dominates across benchmark IDX large-caps."
+                  ? `${dominantPhase.percentage}% of analysed names currently classify as accumulation candidates.`
                   : dominantPhase.phase === "POMPOM"
-                    ? "Retail participation and breakout volume accelerating across analyzed coverage."
+                    ? `${dominantPhase.percentage}% of analysed names currently classify as attention/participation expansion candidates.`
                     : dominantPhase.phase === "MENGGORENG"
-                      ? "High velocity markup and rapid turnover detected in mid-cap rotation."
-                      : "Distribution pressure and net inventory reduction active across key sectors."}
+                      ? `${dominantPhase.percentage}% of analysed names currently classify as aggressive markup candidates.`
+                      : `${dominantPhase.percentage}% of analysed names currently classify as distribution candidates.`}{" "}
+                This describes the acquired subset, not the whole IDX market.
               </p>
             </div>
 
@@ -838,7 +841,7 @@ export function IntelligenceDashboard({
           </div>
 
           <div className="panel-footnote text-[9.5px]">
-            EQUAL-WEIGHT REALTIME AGGREGATE // COMPUTED DIRECTLY FROM OBSERVATIONS
+            EQUAL-WEIGHT ANALYSED SUBSET // NOT A REALTIME WHOLE-MARKET BREADTH FEED
           </div>
         </div>
 
@@ -849,7 +852,7 @@ export function IntelligenceDashboard({
               <Zap size={13} className="text-cyan" />
               <span>[MOD.03 // CANDIDATE_SIGNALS]</span>
             </div>
-            <span className="panel-tag">CONFIDENCE RANKED</span>
+            <span className="panel-tag">EVIDENCE-SCORE RANKED</span>
           </div>
 
           <div className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -987,7 +990,8 @@ export function IntelligenceDashboard({
                 <th>LAST (IDR)</th>
                 <th className="text-right">CHG %</th>
                 <th>PHASE</th>
-                <th>CONF</th>
+                <th>EVIDENCE BASIS</th>
+                <th>EVID SCORE</th>
                 <th>COVERAGE</th>
                 <th className="text-right">RVOL</th>
                 <th>TOP NET BUYER</th>
@@ -1045,6 +1049,21 @@ export function IntelligenceDashboard({
                       </span>
                     </td>
                     <td>
+                      <span
+                        className={`evidence-basis-pill ${
+                          row.evidenceBasis === "BROKER_SUPPORTED"
+                            ? "sectors-backed"
+                            : "price-only"
+                        }`}
+                      >
+                        {row.evidenceBasis === "BROKER_SUPPORTED"
+                          ? "SECTORS-BACKED"
+                          : row.evidenceBasis === "PRICE_VOLUME_ONLY"
+                            ? "PRICE-VOLUME ONLY"
+                            : "INSUFFICIENT"}
+                      </span>
+                    </td>
+                    <td>
                       <div className="flex items-center gap-1.5">
                         <div className="w-12 h-1.5 bg-slate-900 border border-slate-800 rounded-xs overflow-hidden">
                           <div
@@ -1085,7 +1104,7 @@ export function IntelligenceDashboard({
               })}
               {!scannerRows.length && (
                 <tr>
-                  <td colSpan={11} className="py-6 text-center text-slate-500">
+                  <td colSpan={12} className="py-6 text-center text-slate-500">
                     NO SECURITIES MATCHING SPECIFIED CRITERIA.
                   </td>
                 </tr>
@@ -1140,7 +1159,7 @@ export function IntelligenceDashboard({
           <div className="panel-heading">
             <div className="panel-title">
               <TrendingUp size={13} className="text-cyan" />
-              <span>[MOD.06 // INSTITUTIONAL_BROKER_FLOW]</span>
+              <span>[MOD.06 // BROKER_FLOW_LEADERBOARD]</span>
             </div>
             <Link href="/brokers" className="panel-tag text-cyan">
               BROKER STALKER [F4] →
@@ -1194,13 +1213,13 @@ export function IntelligenceDashboard({
           <div className="panel-footnote flex items-center justify-between">
             <span>INVENTORY DELTA BASED ON OBSERVED LOTS</span>
             <Link href="/institutional-flow" className="text-cyan hover:text-amber">
-              INSTITUTIONAL FLOW MAP →
+              BROKER BEHAVIOR MAP →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── 6. SECTOR ROTATION QUADRANT & LIVE ALERTS FEED ── */}
+      {/* ── 6. SECTOR ROTATION QUADRANT & CURRENT ANALYSIS ALERTS ── */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-2">
         <div className="panel lg:col-span-6 flex flex-col justify-between" style={{ marginBottom: 0 }}>
           <div className="panel-heading">
@@ -1228,7 +1247,7 @@ export function IntelligenceDashboard({
           <div className="panel-heading">
             <div className="panel-title">
               <AlertCircle size={13} className="text-amber" />
-              <span>[MOD.08 // LIVE_SIGNAL_ALERTS]</span>
+              <span>[MOD.08 // CURRENT_ANALYSIS_ALERTS]</span>
             </div>
             <Link href="/alerts" className="panel-tag text-amber">
               ALL ({allAlerts.length}) [F7] →

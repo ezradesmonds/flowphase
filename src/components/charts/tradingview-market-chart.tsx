@@ -278,6 +278,7 @@ export function TradingViewMarketChart({
     [intelligence, visibleCandles, ticker, timeframe],
   );
   const selected = regions.find((r) => r.id === selectedRegion?.id);
+  const evidenceRegion = selected ?? intelligence?.regions.at(-1);
   const displayedRegions = brokerConfirmation
     ? regions.filter((r) => r.brokerEvidence === "BROKER_SUPPORTED")
     : regions;
@@ -585,8 +586,8 @@ export function TradingViewMarketChart({
           )}
         </div>
       )}
-      {intelligence && selected && (
-        <PhaseBrokerEvidence analysis={intelligence} region={selected} />
+      {intelligence && evidenceRegion && (
+        <PhaseBrokerEvidence analysis={intelligence} region={evidenceRegion} />
       )}
       {intelligence && (
         <IntelligencePanels
