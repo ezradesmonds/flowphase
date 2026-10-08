@@ -124,10 +124,10 @@ function MarketCanvas({
       current.chart.timeScale().fitContent();
       fitted.current = true;
     }
-  }, [candles, timeframe, autoFit]);
+  }, [candles, timeframe, autoFit, theme]);
   useEffect(() => {
     series.current?.phaseOverlay.setRegions(regions);
-  }, [regions]);
+  }, [regions, theme]);
   useEffect(() => {
     const current = series.current;
     if (!current) return;
@@ -177,7 +177,7 @@ function MarketCanvas({
       current.chart.unsubscribeClick(click);
       current.chart.unsubscribeCrosshairMove(click);
     };
-  }, [alerts, candles, regions, onSelectRegion, timeframe]);
+  }, [alerts, candles, regions, onSelectRegion, timeframe, theme]);
   return (
     <div
       ref={container}
