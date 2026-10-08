@@ -1,54 +1,145 @@
-# Sectors Hackathon readiness
+# Paket submission FlowPhase — 8 Oktober 2026
 
-Based on rules supplied by the user on 18 September 2026. This is a preparation checklist, not organizer approval. User confirmed no submission yet, all members onboarded before project code, and code created specifically within the build period. Verify portal/account records before submission.
+Track: **03 — Market Intelligence**. Nama tim di portal: **Nasgor goreng**; nama produk: **FlowPhase**.
 
-## Positioning
+Batas resmi: **8 Oktober 2026, 23:59 WIB**. Repo DAN aplikasi harus dibekukan saat submit atau deadline, mana yang lebih dahulu. Selesaikan seluruh perbaikan sebelum menekan Submit final. Sumber: [aturan resmi](https://hackathon.sectors.app/rules), [track Market Intelligence](https://hackathon.sectors.app/tracks/market-intelligence).
 
-Track: **03 — Market Intelligence**.
+## Isian portal yang bisa disalin
 
-Problem statement: **FlowPhase mengubah broker flow, ownership, free float, dan company intelligence dari Sectors menjadi kandidat fase pasar IDX yang explainable, lalu menggabungkannya dengan price-volume context untuk menunjukkan bukan hanya “fase apa”, tetapi “kenapa model menilainya begitu” dan bukti apa yang masih hilang.**
+- Public repository URL: `https://github.com/ezradesmonds/flowphase`
+- Problem statement, satu kalimat: **FlowPhase membantu periset saham IDX yang kesulitan menghubungkan pergerakan harga dengan broker flow untuk menemukan kandidat fase pasar, memahami bukti pendukung dan penyangkalnya, serta menentukan pemeriksaan riset berikutnya.**
+- Track: **03 — Market Intelligence**.
+- Teaser video URL: isi setelah mengunggah video satu menit; harus public.
+- Judging video URL: isi setelah mengunggah video maksimal tiga menit; public atau unlisted, bisa dibuka tanpa meminta akses.
+- Social media post URL: isi tautan posting Instagram, LinkedIn, Threads, atau TikTok dengan tag akun resmi Sectors dan thumbnail resmi.
 
-Workflow: scan analysed IDX subset → open a candidate → inspect **SECTORS-BACKED vs PRICE-VOLUME-ONLY evidence basis** → compare phase scores/supporting/opposing evidence → inspect Sectors broker/ownership context → replay causally. Sectors is indispensable to the full FlowPhase evidence signal: without Sectors broker evidence the product deliberately downgrades output to **PRICE-VOLUME CANDIDATE ONLY**. Do not describe this as an AI agent: an LLM is not at the product's core. AI-assisted coding is permitted by the supplied rules.
+Template thumbnail resmi yang ditautkan portal: [Canva](https://canva.link/mexgt4g89m17xln). Ambil handle akun resmi dari kanal penyelenggara; jangan menyalin placeholder tag di bawah sebagai tag sebenarnya.
 
-## Eligibility and submission checklist
+## Posisi produk untuk juri
 
-- [ ] All participants are eligible Indonesian citizens/residents, outside excluded organizer/employee/family categories; guardian consent for anyone under 18.
-- [ ] Sectors onboarding completed before project coding and verified before **22 September 2026, 23:59 WIB**.
-- [ ] One team per person, one project per team, 1–4 members; representative and roster confirmed.
-- [ ] Repository created/first commit within **19 August–30 September 2026**; no prior-project code. Never backdate or fabricate history. Public frameworks/templates are allowed.
-- [ ] Project exclusive to this competition; no extra accounts to obtain credits.
-- [ ] Public repository reviewed for secrets, remaining public at least 90 days after the 9 October winner announcement.
-- [ ] One-minute public teaser video.
-- [ ] Accessible judging video, maximum three minutes, showing problem, audience and real end-to-end workflow.
-- [ ] One-sentence problem, Track 03, all participant names.
-- [ ] Social post on an allowed platform, tagging official Sectors account with official thumbnail template. Obtain exact handle/template from portal; do not guess.
-- [ ] Submit via portal before **30 September 2026, 23:59 WIB**.
-- [ ] Immediately freeze repository AND application at submission/deadline, whichever is earlier. No subsequent bug fixes. Credential-leak exception: notify organizers, revoke/rotate first, then removal-only commit.
+Pengguna: periset dan investor ritel yang melakukan riset saham IDX. Masalah: harga, volume, broker flow, dan ownership tersebar; label fase tanpa alasan mudah disalahartikan sebagai kepastian. Hasil: shortlist kandidat dan jejak alasan yang bisa diperiksa, termasuk alasan untuk meragukan hasil.
 
-Local Git setup is not public hosting, registration, submission or proof of onboarding. Publishing, video uploads and social posts remain team actions. No automated order execution or investment recommendations are implemented. Keep analysis disclaimers visible in the recording.
+Pembeda yang ditunjukkan: Radar discovery berbasis Sectors → detail kandidat → phase evidence → ringkasan riset → konteks broker/ownership. Model deterministik menghitung fitur dan skor; bukan AI agent. Sectors menyediakan discovery, company, free float, broker flow, registry, serta ownership/foreign-flow context. TradingView menyediakan OHLCV. Dua trigger Radar berasal dari jenis data berbeda pada publisher Sectors yang sama; jangan menyebutnya bukti statistik independen.
 
-## Judging video draft — 3 minutes
+Tanpa broker evidence Sectors, UI menurunkan hasil menjadi **PRICE-VOLUME CANDIDATE ONLY**. Confidence adalah kekuatan aturan, bukan peluang profit. Net broker bukan kepemilikan absolut dan tidak membuktikan beneficial owner atau manipulasi.
 
-| Time      | What to show                                                                                                                         |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 0:00–0:20 | Problem: price charts can show movement, but researchers still need explainable evidence for what market-cycle phase a stock may be entering. |
-| 0:20–0:45 | Dashboard/scanner: show only the **analysed subset**, phase candidates, confidence, coverage, and the new **evidence basis** column. |
-| 0:45–1:25 | Open a stock and show the chart plus **FlowPhase Evidence**: Sectors-backed status, four phase scores, supporting evidence, evidence against, coverage and data quality. |
-| 1:25–1:55 | Open broker rows for the selected phase. Explain observed net lots, crossing-risk penalty, and why broker aggregates are not beneficial ownership. |
-| 1:55–2:20 | Show ownership / foreign-flow / free-float context from Sectors. Make clear that these support research but do not prove manipulation or future return. |
-| 2:20–2:45 | Replay the chart causally. Regions are generated from revealed history; no future candle is fed into the classifier. |
-| 2:45–3:00 | Close with source boundary: Sectors powers the full evidence signal; without broker evidence FlowPhase visibly downgrades to **PRICE-VOLUME CANDIDATE ONLY**. Research tool, not a recommendation. |
+## Persiapan rekaman — lakukan sebelum record
 
-Teaser: problem 10s → scanner/evidence-basis 10s → FlowPhase Evidence panel 20s → Sectors broker/ownership context 15s → title/track 5s. Real screen capture; no fabricated performance or testimonials.
+1. Gunakan build produksi: `npm run build`, lalu `npm start`. Server lokal memakai `http://127.0.0.1:3000`; konfigurasi key server mengikuti README. Jangan merekam terminal environment atau API key.
+2. Buka Radar, scanner, satu detail saham yang berhasil dimuat, dan methodology dalam tab yang siap. Pilih contoh dari hasil aktual, bukan ticker yang diasumsikan punya fase tertentu.
+3. Uji chart terlihat, refresh, ganti tema lalu kembali, pindah timeframe, dan replay sebelum merekam. Pilih satu tema selama rekaman.
+4. Tunggu provider selesai sebelum mulai. Jika broker tidak tersedia, tampilkan batasan tersebut; gunakan contoh lain yang benar-benar tersedia untuk jalur utama.
+5. Rekam 1080p, browser zoom agar teks terbaca, cursor tenang, tanpa notifikasi. Tampilkan aplikasi, bukan editor, hampir sepanjang video.
+6. Latihan satu kali dengan timer. Target teaser 55–60 detik; judging 2:40–2:55 agar tidak melewati batas tiga menit. Pangkas jeda loading tanpa mengubah isi hasil analisis.
 
-Social draft (not published): “Kami membangun FlowPhase untuk mengubah data broker, ownership, free float, dan company intelligence dari Sectors menjadi kandidat fase pasar IDX yang explainable, lengkap dengan alasan pendukung, bukti yang berlawanan, dan konteks price-volume. Alat informasi dan analisis, bukan rekomendasi investasi. [tautan proyek/video] [tag resmi dari portal].”
+Narasi di bawah tidak mengasumsikan fase tertentu. Jika terlihat pending/uncertain, sebutkan apa adanya. Jangan mengucapkan “akumulasi terkonfirmasi” ketika panel masih menunggu konfirmasi.
 
-## Remaining scoring priorities
+## Naskah teaser — sekitar satu menit
 
-**Usability, 40%:** have 2–3 intended users complete the workflow and record real task completion/confusing labels. No user study has been claimed. Validate whether these metrics answer a real research question.
+| Waktu     | Layar                                               |
+| --------- | --------------------------------------------------- |
+| 0:00–0:12 | Judul FlowPhase, lalu Radar                         |
+| 0:12–0:25 | Buka kandidat yang sudah siap dianalisis            |
+| 0:25–0:45 | Ringkasan riset dan evidence panel, zoom secukupnya |
+| 0:45–0:55 | Broker context dan evidence basis                   |
+| 0:55–1:00 | Judul, track, repo                                  |
 
-**Storytelling, 30%:** record clear production data, readable text and narration within time. Judging is asynchronous; the repository/video must stand alone.
+**Narasi siap baca:**
 
-**Engineering, 30%:** keep CI/tests, source boundaries and formulas visible. Exercise production search, filtering, details, broker availability, chart, replay and watchlist. Automated browser execution was blocked in this Windows environment; manual checks do not substitute for an automated pass. Phase heuristics are not independently validated predictive models.
+“Grafik saham menunjukkan pergerakan harga. Tetapi untuk riset, kita juga perlu tahu: bukti apa yang mendukung, apa yang bertentangan, dan apa yang harus diperiksa berikutnya?
 
-Public deployment is optional. It would need shared rate limits/access control to protect credits. The third-party TradingView connection has no guaranteed SLA and sessions last 55 seconds. Localhost demonstration is acceptable under the supplied rules.
+Kami membangun FlowPhase untuk periset saham Indonesia. Market Radar memakai data Sectors untuk menemukan kandidat berdasarkan perubahan harga dan aktivitas perdagangan. Dari sini, kita membuka analisis fase bersama konteks harga dan volume.
+
+Ringkasan riset menjelaskan bukti pendukung, alasan untuk meragukan hasil, dan pemeriksaan berikutnya. Ketika bukti lemah atau fase belum terkonfirmasi, FlowPhase menampilkannya secara terbuka.
+
+Data broker dan ownership dari Sectors memperkaya penelitian. Tanpa bukti broker, hasil diberi label price-volume candidate only.
+
+FlowPhase: dari data pasar menuju riset yang bisa diperiksa. Alat analisis, bukan rekomendasi investasi.”
+
+Judul unggahan: **FlowPhase — Explainable IDX Market Intelligence | Sectors Hackathon 2026**.
+
+## Naskah judging — target 2:45, maksimal tiga menit
+
+### 0:00–0:25 — masalah dan pengguna
+
+Layar: judul singkat → Radar.
+
+“FlowPhase membantu periset saham IDX menghubungkan pergerakan harga dengan bukti broker flow. Masalah yang kami selesaikan adalah proses riset yang terpecah: menemukan saham aktif, membaca chart, lalu memeriksa broker dan ownership di tempat berbeda. Kami menyatukannya menjadi alur yang menjelaskan hasil sekaligus keterbatasannya.”
+
+### 0:25–0:55 — discovery menjadi kandidat
+
+Layar: Radar → kandidat → Analyze with FlowPhase atau Open analysis sesuai status sebenarnya.
+
+“Market Radar menggunakan Top Movers dan Most Traded dari Sectors. Saham dengan dua jenis trigger mendapat prioritas, sementara foreign flow menjadi konteks tambahan. Saya membuka satu kandidat dari hasil aktual. Analisis yang tersimpan kemudian masuk ke scanner; cakupannya hanya saham yang telah dianalisis, bukan klaim pemantauan seluruh IDX secara realtime.”
+
+### 0:55–1:35 — alasan dan penyangkal
+
+Layar: chart → FlowPhase Evidence → Ringkasan riset. Sebutkan label aktual jika perlu.
+
+“Di detail saham, harga dan volume TradingView dipadukan dengan broker evidence Sectors bila tersedia. Model deterministik menghitung kandidat fase, skor pendukung, coverage, serta kualitas data. Ringkasan riset menerjemahkan hasil menjadi tiga pertanyaan: apa yang mendukung, apa yang perlu diragukan, dan apa yang harus diperiksa berikutnya. Status pending tidak dipromosikan menjadi fase terkonfirmasi. Skor ini adalah kekuatan aturan model, bukan probabilitas keuntungan.”
+
+### 1:35–2:05 — broker dan batas sumber
+
+Layar: broker rows → ownership/free float jika tersedia; bila tidak, cukup panel missing-data.
+
+“Konteks broker memperlihatkan net flow teramati dan risiko crossing. Net broker bukan kepemilikan absolut. Registry metadata dipertahankan ketika chart dihitung ulang; jika registry tidak tersedia, fallback ditandai sebagai heuristic. Ownership dan free float membantu pemeriksaan lanjutan, tetapi tidak membuktikan identitas pemilik manfaat atau manipulasi. Data yang hilang ditampilkan sebagai unavailable, bukan angka nol.”
+
+### 2:05–2:30 — replay dan ketergantungan Sectors
+
+Layar: aktifkan replay dan maju beberapa candle; evidence basis.
+
+“Replay menghitung fase menggunakan candle yang sudah terungkap. Broker evidence juga dibatasi oleh waktu ketersediaan data; riwayat yang baru diambil tidak dianggap sudah diketahui pada masa lalu. Tanpa dukungan broker Sectors, FlowPhase secara eksplisit menurunkan hasil menjadi price-volume candidate only. Ini membuat batas sumber dan kekuatan analisis terlihat.”
+
+### 2:30–2:50 — engineering dan penutup
+
+Layar: methodology → judul/repo; jangan habiskan waktu menampilkan terminal.
+
+“Implementasi memakai Next.js dan TypeScript, dengan kredensial Sectors di server, cache untuk membatasi request, serta pengujian untuk missing data, perhitungan, dan replay. Sebanyak 145 unit tests dan build produksi telah lulus. FlowPhase membantu pengguna menentukan riset berikutnya dengan alasan yang bisa diperiksa. Kami tidak mengklaim prediksi profit. Terima kasih.”
+
+Jika latihan melebihi tiga menit, potong kalimat registry metadata dan rincian stack; pertahankan masalah, alur nyata, peran Sectors, pembeda, dan batasan.
+
+## Deskripsi video — siap salin
+
+**FlowPhase | Track 03 — Market Intelligence | Team Nasgor goreng**
+
+FlowPhase membantu periset saham IDX menemukan kandidat fase pasar dan memeriksa alasan pendukung, bukti penyangkal, serta langkah riset berikutnya. Sectors menyediakan discovery dan konteks broker/company/ownership; TradingView menyediakan OHLCV. Model fase bersifat deterministik dan menampilkan keterbatasan data.
+
+Repository: https://github.com/ezradesmonds/flowphase
+
+Informasi dan analisis, bukan rekomendasi investasi. Skor bukan peluang profit; net broker bukan kepemilikan absolut. Belum ada validasi prediktif independen.
+
+## Caption sosial — draft siap edit
+
+Kami membangun **FlowPhase** untuk Sectors Hackathon 2026, track Market Intelligence.
+
+Dari Market Radar ke analisis saham IDX, FlowPhase menghubungkan data Sectors dengan konteks harga-volume untuk menjawab: apa yang mendukung kandidat fase, apa yang bertentangan, dan apa yang perlu diperiksa berikutnya?
+
+Kami menampilkan batasan data dan membedakan Sectors-backed candidate dari price-volume-only candidate. Alat riset, bukan rekomendasi investasi.
+
+Demo: [ISI TAUTAN TEASER PUBLIC]
+Repo: https://github.com/ezradesmonds/flowphase
+[TAG AKUN RESMI SECTORS]
+
+Gunakan thumbnail resmi. Ganti semua placeholder sebelum posting; posting dan unggahan dilakukan oleh tim.
+
+## Urutan penyelesaian malam ini
+
+- [ ] Periksa eligibility, roster, dan onboarding pada portal; jangan menganggap dokumentasi repo sebagai bukti administratif.
+- [ ] Pastikan repo public dan riwayat kontribusi sesuai aturan; jangan backdate history. Repo tetap public minimal 90 hari setelah pengumuman pemenang 17 Oktober 2026 sesuai aturan saat diperiksa.
+- [ ] Pastikan chart dan satu alur produksi berjalan dengan key lokal; cek tidak ada kredensial dalam layar/rekaman/file publik.
+- [ ] Rekam teaser dan judging; cek durasi, audio, keterbacaan, hasil aktual, dan disclaimer.
+- [ ] Upload teaser public dan judging public/unlisted. Uji kedua URL pada browser incognito tanpa login.
+- [ ] Buat posting sosial menggunakan template dan tag resmi; salin URL langsung posting.
+- [ ] Isi seluruh field portal, pilih track, Save draft, lalu periksa semua tautan dan problem statement.
+- [ ] Selesaikan semua commit/push dan perubahan aplikasi sebelum Submit final.
+- [ ] Submit final sebelum 23:59 WIB, simpan bukti status diterima, lalu bekukan repo DAN aplikasi. Jangan memperbaiki kode setelah submit.
+
+Pengecualian credential leak mengikuti aturan: beri tahu penyelenggara, revoke/rotate, lalu perubahan hanya untuk penghapusan kredensial. Tidak ada upload, posting sosial, atau submission portal yang dilakukan otomatis dalam sesi ini.
+
+## Catatan validasi upgrade 8 Oktober
+
+- 145 unit tests, 19 file, lulus; production build dan TypeScript lulus.
+- Full ESLint: 0 errors, 32 warning lama; belum semuanya dibersihkan.
+- Pemeriksaan file publik: 195 tracked files lulus sebelum perubahan dokumentasi terakhir; bukan audit keamanan menyeluruh.
+- Perbaikan: metadata broker tetap terjaga saat reanalysis; ringkasan riset dengan pending/weak-evidence guards; rendering React dan umur cache; data chart dipasang ulang saat tema berubah.
+- Tidak ada klaim studi pengguna, backtest profit, atau kelulusan seluruh authenticated E2E. Ketersediaan provider dan kredit dapat memengaruhi demo. Chart harus diuji ulang secara visual sebelum rekaman.

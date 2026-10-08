@@ -6,11 +6,11 @@ Track: **03 — Market Intelligence**. Alat informasi dan analisis, bukan rekome
 
 ## Alur utama
 
-1. Buka **Market Radar** untuk menemukan kandidat riset dari Sectors Top Movers + Most Traded; kandidat yang muncul dari dua feed independen diprioritaskan, sementara foreign flow hanya menjadi konteks.
+1. Buka **Market Radar** untuk menemukan kandidat riset dari Sectors Top Movers + Most Traded; kandidat yang muncul dari dua jenis trigger dari sumber Sectors yang sama diprioritaskan, sementara foreign flow hanya menjadi konteks.
 2. Dari Radar, jalankan **Analyze with FlowPhase** untuk kandidat yang belum dianalisis, lalu lanjut ke Stock Intelligence tanpa workflow terpisah.
 3. Tinjau Dashboard dengan cakupan saham yang benar-benar sudah dianalisis; aggregate hanya mewakili acquired subset, bukan seluruh IDX secara realtime.
 4. Filter Market Scanner menurut fase, confidence, evidence basis, broker flow, relative volume, alert, sektor dan watchlist.
-5. Buka Stock Intelligence untuk chart TradingView, empat fase, cycle/replay, lalu baca **FlowPhase Evidence** yang memisahkan supporting evidence, evidence against, coverage, data quality, dan phase-score comparison.
+5. Buka Stock Intelligence untuk chart TradingView, empat fase, cycle/replay, lalu baca **FlowPhase Evidence** yang memisahkan supporting evidence, evidence against, coverage, data quality, dan phase-score comparison; ringkasan riset menjelaskan dukungan, penyangkal, serta pemeriksaan berikutnya tanpa mengonfirmasi label pending.
 6. Bedakan **SECTORS-BACKED FLOWPHASE CANDIDATE** dari **PRICE-VOLUME CANDIDATE ONLY**. Price-volume-only tidak dipresentasikan sebagai full FlowPhase signal.
 7. Periksa observed broker inventory delta, crossing-risk proxy, ownership/foreign-flow context, dan alerts beserta provenance serta limitation-nya.
 
@@ -37,17 +37,17 @@ Buka http://127.0.0.1:3000. Build produksi: `npm run build`, lalu `npm start`. B
 
 ## Sumber data
 
-| Data                      | Sumber                                                            |
-| ------------------------- | ----------------------------------------------------------------- |
-| Ticker, nama, klasifikasi | Sectors `/v2/companies/`, semua halaman, validasi total/duplikasi |
-| Free float                | Sectors `/v2/free-float/`; rasio 0–1 ditampilkan sebagai persen   |
-| Broker flow               | Sectors `/v2/broker-summary/{symbol}/`, per saham yang dibuka     |
-| Broker cohort metadata    | Sectors `/v2/brokers/`, authoritative broker registry             |
-| Radar discovery           | Sectors `/v2/companies/top-changes/` + `/v2/most-traded/`         |
-| Foreign flow context      | Sectors `/v2/foreign-flow/{symbol}/`, bounded to top Radar rows    |
-| OHLCV                     | `@mathieuc/tradingview` server-only; renderer Lightweight Charts  |
+| Data                      | Sumber                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| Ticker, nama, klasifikasi | Sectors `/v2/companies/`, semua halaman, validasi total/duplikasi              |
+| Free float                | Sectors `/v2/free-float/`; rasio 0–1 ditampilkan sebagai persen                |
+| Broker flow               | Sectors `/v2/broker-summary/{symbol}/`, per saham yang dibuka                  |
+| Broker cohort metadata    | Sectors `/v2/brokers/`, authoritative broker registry                          |
+| Radar discovery           | Sectors `/v2/companies/top-changes/` + `/v2/most-traded/`                      |
+| Foreign flow context      | Sectors `/v2/foreign-flow/{symbol}/`, bounded to top Radar rows                |
+| OHLCV                     | `@mathieuc/tradingview` server-only; renderer Lightweight Charts               |
 | Phase candidates          | Model deterministik; TradingView OHLCV + Sectors broker evidence bila tersedia |
-| Watchlist                 | Browser lokal, penyimpanan produksi terpisah dari demo            |
+| Watchlist                 | Browser lokal, penyimpanan produksi terpisah dari demo                         |
 
 Verifikasi langsung 17 September 2026: 962 saham, 962 klasifikasi sektor/subsektor, 961 nilai free float. Ini hasil pengamatan, bukan konstanta aplikasi. Data hilang ditampilkan **Unavailable**, bukan nol/fixture.
 
