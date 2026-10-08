@@ -15,7 +15,7 @@ import {
   type Timeframe,
 } from "@/domain/chart-market";
 import type { Intelligence } from "@/domain/intelligence";
-import { analyze } from "@/lib/intelligence/analyze";
+import { reanalyze } from "@/lib/intelligence/analyze";
 import { PhaseBrokerEvidence } from "../phase-broker-evidence";
 import { IntelligencePanels } from "../intelligence-panels";
 import { Panel } from "../ui";
@@ -43,7 +43,10 @@ function setup(element: HTMLDivElement, theme: ChartTheme) {
       vertLines: { color: light ? "#e6e9ee" : "#121a24" },
       horzLines: { color: light ? "#e6e9ee" : "#121a24" },
     },
-    timeScale: { timeVisible: true, borderColor: light ? "#e6e9ee" : "#1a2636" },
+    timeScale: {
+      timeVisible: true,
+      borderColor: light ? "#e6e9ee" : "#1a2636",
+    },
     rightPriceScale: { borderColor: light ? "#e6e9ee" : "#1a2636" },
     localization: { locale: "en-GB" },
   });
@@ -111,7 +114,10 @@ function MarketCanvas({
       candles.map((c) => ({
         time: c.time as UTCTimestamp,
         value: c.volume,
-        color: c.close >= c.open ? "rgba(0, 230, 118, 0.35)" : "rgba(255, 51, 85, 0.35)",
+        color:
+          c.close >= c.open
+            ? "rgba(0, 230, 118, 0.35)"
+            : "rgba(255, 51, 85, 0.35)",
       })),
     );
     if ((!fitted.current || autoFit) && candles.length) {
@@ -257,10 +263,9 @@ export function TradingViewMarketChart({
   const intelligence = useMemo(
     () =>
       initialAnalysis && data
-        ? analyze(
-            ticker,
+        ? reanalyze(
+            initialAnalysis,
             { ...data, candles: visibleCandles },
-            initialAnalysis.broker,
             replay && visibleCandles.length
               ? new Date(visibleCandles.at(-1)!.time * 1000).toISOString()
               : Date.parse(initialAnalysis.calculatedAt) >

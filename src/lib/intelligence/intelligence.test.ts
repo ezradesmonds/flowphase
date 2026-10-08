@@ -6,7 +6,7 @@ import { priceVolume } from "./price-volume";
 import { volumeAlerts, brokerAlerts } from "./alerts";
 import { detectCycles } from "./cycles";
 import { detectPhaseRegions } from "@/lib/phases/detect";
-import { analyze } from "./analyze";
+import { analyze, reanalyze } from "./analyze";
 import type { BrokerFlow, PhaseRegion } from "@/domain/market";
 import type { MarketCandle } from "@/domain/chart-market";
 const flows: BrokerFlow[] = [
@@ -272,8 +272,16 @@ describe("price-volume and alerts", () => {
 describe("cycles and confirmation", () => {
   const region = (phase: PhaseRegion["phase"], i: number): PhaseRegion => ({
     marketCondition: phase === "POST_DISTRIBUTION_MARKDOWN" ? phase : "NONE",
-    label:phase,coverage:0.5,dataQualityFactor:1,algorithmVersion:"test",configVersion:"test",
-    scores:{AKUMULASI:0,POMPOM:0,MENGGORENG:0,DISTRIBUSI:0},evidenceItems:[],againstEvidence:[],liquidityBucket:"LOW",changePoint:false,
+    label: phase,
+    coverage: 0.5,
+    dataQualityFactor: 1,
+    algorithmVersion: "test",
+    configVersion: "test",
+    scores: { AKUMULASI: 0, POMPOM: 0, MENGGORENG: 0, DISTRIBUSI: 0 },
+    evidenceItems: [],
+    againstEvidence: [],
+    liquidityBucket: "LOW",
+    changePoint: false,
     id: String(i),
     ticker: "TEST",
     phase,
@@ -318,8 +326,7 @@ describe("cycles and confirmation", () => {
     expect(early[0].phase).toBe("INSUFFICIENT_DATA");
     const confirmed = detectPhaseRegions("TEST", "1D", c.slice(0, 23));
     expect(confirmed[0].startTimestamp).toBe(c[0].time);
-    expect(confirmed.filter(r => r.phase === "POMPOM")).toEqual([]);
-
+    expect(confirmed.filter((r) => r.phase === "POMPOM")).toEqual([]);
   });
   it("handles no price or broker coverage honestly", () => {
     const result = analyze("TEST", null, {
@@ -335,6 +342,73 @@ describe("cycles and confirmation", () => {
     expect(result.inventory).toEqual([]);
     expect(result.alerts).toEqual([]);
   });
+});
+
+it("chart refresh preserves verified broker metadata while replay respects availability", () => {
+  const snapshot = {
+    ticker: "TEST",
+    timeframe: "1D" as const,
+    limit: 30,
+    symbol: "IDX:TEST",
+    source: "TRADINGVIEW" as const,
+    delay: "UNKNOWN" as const,
+    fetchedAt: "2026-09-02T00:00:00Z",
+    candles: candles(),
+  };
+  const registry = [
+    {
+      ...brokerProfile("AK"),
+      classification: "RETAIL_ACCESSIBLE" as const,
+      source: "VERIFIED_METADATA" as const,
+      confidence: 95,
+    },
+  ];
+  const initial = analyze(
+    "TEST",
+    snapshot,
+    {
+      ticker: "TEST",
+      start: "2026-08-01",
+      end: "2026-08-30",
+      fetchedAt: snapshot.fetchedAt,
+      flows: flows
+        .filter((f) => f.ticker === "TEST")
+        .map((f) => ({
+          ...f,
+          availableAt: "2026-08-04T00:00:00Z",
+        })),
+      unavailableReason: null,
+    },
+    snapshot.fetchedAt,
+    registry,
+  );
+  const refreshed = reanalyze(initial, snapshot, snapshot.fetchedAt);
+  expect(
+    refreshed.inventory.find((row) => row.brokerCode === "AK")?.profile,
+  ).toEqual(registry[0]);
+  expect(refreshed.groups).toEqual(initial.groups);
+  expect(refreshed.warnings).not.toContain(
+    "Sectors Broker Registry unavailable; broker cohort classification fell back to low-confidence local heuristics.",
+  );
+  const replay = reanalyze(
+    initial,
+    {
+      ...snapshot,
+      candles: snapshot.candles.slice(0, 3),
+    },
+    "2026-08-03T23:59:59+07:00",
+  );
+  expect(replay.broker.flows).toEqual([]);
+  expect(replay.inventory).toEqual([]);
+  const fallback = analyze(
+    "TEST",
+    snapshot,
+    initial.broker,
+    snapshot.fetchedAt,
+  );
+  expect(reanalyze(fallback, snapshot, snapshot.fetchedAt).warnings).toEqual(
+    fallback.warnings,
+  );
 });
 
 it("replay excludes all broker records and alerts after the revealed candle", () => {
@@ -368,5 +442,7 @@ it("replay excludes all broker records and alerts after the revealed candle", ()
     broker,
   );
   expect(result.broker.flows.every((f) => f.date <= "2026-08-20")).toBe(true);
-  expect(result.alerts.every(a => a.timestamp <= prefix.at(-1)!.time)).toBe(true);
+  expect(result.alerts.every((a) => a.timestamp <= prefix.at(-1)!.time)).toBe(
+    true,
+  );
 });

@@ -1,7 +1,7 @@
-import type { Intelligence } from "@/domain/intelligence";
+import type { BrokerProfile, Intelligence } from "@/domain/intelligence";
 import type { IdxStock } from "@/domain/securities";
 import type { MarketCandle } from "@/domain/chart-market";
-import { brokerProfile, type BrokerProfile } from "@/config/brokers";
+import { brokerProfile } from "@/config/brokers";
 import { metric, type Meta } from "./model";
 import { sessionDate } from "../analyze";
 export function marketActivity(

@@ -14,6 +14,21 @@ import {
   featureAlerts,
 } from "./alerts";
 export { sessionDate } from "@/lib/phases/features";
+export function reanalyze(
+  previous: Intelligence,
+  snapshot: CandleSnapshot,
+  now: string,
+): Intelligence {
+  return analyze(
+    previous.ticker,
+    snapshot,
+    previous.broker,
+    now,
+    previous.inventory.some((row) => row.profile.source === "VERIFIED_METADATA")
+      ? previous.inventory.map((row) => row.profile)
+      : undefined,
+  );
+}
 export function analyze(
   ticker: string,
   snapshot: CandleSnapshot | null,

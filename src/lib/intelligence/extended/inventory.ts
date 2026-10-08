@@ -1,6 +1,6 @@
-import type { Intelligence } from "@/domain/intelligence";
+import type { BrokerProfile, Intelligence } from "@/domain/intelligence";
 import type { BrokerFlow } from "@/domain/market";
-import { brokerProfile, type BrokerProfile } from "@/config/brokers";
+import { brokerProfile } from "@/config/brokers";
 import { metric, RULES, type Affiliation, type Meta } from "./model";
 import { sessionDate } from "../analyze";
 export function brokerIdentity(
