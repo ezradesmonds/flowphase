@@ -78,12 +78,11 @@ export function Shell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [marketStatus, setMarketStatus] = useState(getIdxMarketStatus());
+  const [marketStatus, setMarketStatus] = useState(getIdxMarketStatus);
   const [wibTime, setWibTime] = useState("");
 
   // Jakarta clock and nominal IDX session windows. This is not an exchange-status feed.
   useEffect(() => {
-    setMounted(true);
     const updateTime = () => {
       const now = new Date();
       const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -98,9 +97,15 @@ export function Shell({
       );
       setMarketStatus(getIdxMarketStatus());
     };
-    updateTime();
+    const initial = setTimeout(() => {
+      setMounted(true);
+      updateTime();
+    }, 0);
     const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(interval);
+    };
   }, []);
 
   // Keyboard shortcut listener for institutional Bloomberg Function Keys [F1] - [F9]
@@ -145,16 +150,27 @@ export function Shell({
 
   // Load Saved Theme
   useEffect(() => {
-    const saved = window.localStorage.getItem("flowphase-theme");
-    const preferred = saved === "dark" || saved === "light" ? saved : "dark";
-    document.documentElement.dataset.theme = preferred;
-    setTheme(preferred);
+    const timer = setTimeout(() => {
+      let preferred: "dark" | "light" = "dark";
+      try {
+        if (window.localStorage.getItem("flowphase-theme") === "light") preferred = "light";
+      } catch {
+        // Browser storage may be disabled; keep this tab usable.
+      }
+      document.documentElement.dataset.theme = preferred;
+      setTheme(preferred);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    window.localStorage.setItem("flowphase-theme", next);
+    try {
+      window.localStorage.setItem("flowphase-theme", next);
+    } catch {
+      // Theme changes still work for this tab when storage is unavailable.
+    }
     setTheme(next);
   };
 
@@ -230,7 +246,7 @@ export function Shell({
             </div>
             <div className="hidden sm:flex flex-col">
               <span className="font-bold text-xs tracking-wider text-white uppercase font-mono group-hover:text-amber-400 transition-colors">
-                FLOWPHASE <span className="text-cyan text-[10px] font-normal">// INTELLIGENCE</span>
+                FLOWPHASE <span className="text-cyan text-[10px] font-normal">{"//"} INTELLIGENCE</span>
               </span>
             </div>
           </Link>
@@ -428,7 +444,7 @@ export function Shell({
           <footer className="terminal-footer mt-8">
             <div className="flex items-center gap-2 font-mono">
               <span className="text-amber font-bold">FLOWPHASE INTELLIGENCE</span>
-              <span className="text-slate-600">//</span>
+              <span className="text-slate-600">{"//"}</span>
               <span className="text-slate-400">INSTITUTIONAL MARKET RESEARCH WORKSTATION</span>
             </div>
             <div className="flex items-center gap-3 font-mono">

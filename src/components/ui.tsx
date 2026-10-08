@@ -71,7 +71,7 @@ export function Panel({
       <div className="panel-heading">
         <div className="flex items-center gap-2">
           <h2>{title}</h2>
-          {note && <span className="panel-note text-slate-500">// {note}</span>}
+          {note && <span className="panel-note text-slate-500">{"//"} {note}</span>}
         </div>
         {action}
       </div>

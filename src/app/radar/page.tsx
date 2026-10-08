@@ -21,19 +21,8 @@ export default async function RadarPage() {
         </div>
       </>
     );
-  try {
-    const snapshot = await getMarketRadar();
-    return (
-      <>
-        <PageHeading
-          eyebrow="DISCOVER // SECTORS MARKET STRUCTURE"
-          title="Market Radar"
-          description="Reduce the IDX universe into explainable research candidates before running deeper FlowPhase phase analysis."
-        />
-        <MarketRadar snapshot={snapshot} />
-      </>
-    );
-  } catch {
+  const snapshot = await getMarketRadar().catch(() => null);
+  if (!snapshot) {
     return (
       <>
         <PageHeading
@@ -50,4 +39,14 @@ export default async function RadarPage() {
       </>
     );
   }
+  return (
+    <>
+      <PageHeading
+        eyebrow="DISCOVER // SECTORS MARKET STRUCTURE"
+        title="Market Radar"
+        description="Reduce the IDX universe into explainable research candidates before running deeper FlowPhase phase analysis."
+      />
+      <MarketRadar snapshot={snapshot} />
+    </>
+  );
 }

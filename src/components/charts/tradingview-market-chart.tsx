@@ -274,7 +274,7 @@ export function TradingViewMarketChart({
                 : data.fetchedAt,
           )
         : undefined,
-    [initialAnalysis, data, visibleCandles, ticker, replay],
+    [initialAnalysis, data, visibleCandles, replay],
   );
   const regions = useMemo(
     () =>

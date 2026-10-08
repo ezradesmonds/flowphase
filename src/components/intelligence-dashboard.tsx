@@ -168,7 +168,7 @@ export function IntelligenceDashboard({
     counts["OTHERS"] = 0;
 
     for (const a of analyses) {
-      if (CORE_PHASES.includes(a.state as any)) {
+      if (CORE_PHASES.some((phase) => phase === a.state)) {
         counts[a.state] = (counts[a.state] || 0) + 1;
       } else if (a.state === "TRANSITION") {
         counts["TRANSITION"] = (counts["TRANSITION"] || 0) + 1;
@@ -426,12 +426,12 @@ export function IntelligenceDashboard({
     return Array.from(map.entries())
       .map(([sectorName, data]) => {
         const count = data.stocks.length;
-        let dominant = data.stocks[0]?.phase ?? "AKUMULASI";
+        let dominant: string = data.stocks[0]?.phase ?? "AKUMULASI";
         let maxP = 0;
         for (const [p, c] of Object.entries(data.phaseCounts)) {
           if (c > maxP) {
             maxP = c;
-            dominant = p as any;
+            dominant = p;
           }
         }
 

@@ -152,7 +152,7 @@ export function AlertCenter({ analyses }: { analyses: Intelligence[] }) {
       </Panel>
 
       <div className="chart-caption flex items-center justify-between">
-        <span>MATCHING ALERTS: {filtered.length} // COVERAGE: {analyses.length} SECURITIES</span>
+        <span>MATCHING ALERTS: {filtered.length} {"//"} COVERAGE: {analyses.length} SECURITIES</span>
         <span className="text-amber">EXPLAINABLE DETERMINISTIC AUDIT</span>
       </div>
 

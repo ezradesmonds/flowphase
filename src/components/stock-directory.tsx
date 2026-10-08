@@ -25,7 +25,11 @@ export function StockDirectory({
   view?: "scanner" | "overview" | "stocks" | "watchlist" | "brokers" | "replay";
 }) {
   const router = useRouter();
-  const [renderTime] = useState(() => Date.now());
+  const [renderTime, setRenderTime] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setRenderTime(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
   const [transition, setTransition] = useState("");
   const [phase, setPhase] = useState(initialPhase);
   const [minimum, setMinimum] = useState("");
@@ -241,9 +245,9 @@ export function StockDirectory({
     () =>
       pageStocks.filter((stock) => {
         const old = analysisMap.get(stock.ticker);
-        return !old || Date.now() - Date.parse(old.calculatedAt) >= 900000;
+        return !old || renderTime - Date.parse(old.calculatedAt) >= 900000;
       }),
-    [pageStocks, analysisMap],
+    [pageStocks, analysisMap, renderTime],
   );
 
   async function runBatch(count?: number) {

@@ -181,7 +181,6 @@ export function PhaseDonutChart({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  let currentOffset = 0;
   const validTotal = total > 0 ? total : 1;
 
   const activeSlice =
@@ -204,11 +203,11 @@ export function PhaseDonutChart({
             stroke="#101824"
             strokeWidth={strokeWidth}
           />
-          {slices.map((slice) => {
+          {slices.map((slice, index) => {
             const fraction = slice.count / validTotal;
             const strokeDasharray = `${(fraction * circumference).toFixed(2)} ${circumference.toFixed(2)}`;
-            const strokeDashoffset = (-currentOffset * circumference).toFixed(2);
-            currentOffset += fraction;
+            const precedingCount = slices.slice(0, index).reduce((sum, item) => sum + item.count, 0);
+            const strokeDashoffset = (-precedingCount / validTotal * circumference).toFixed(2);
 
             const isHovered = hoveredPhase === slice.phase;
             const isSelected = selectedPhase === slice.phase;
