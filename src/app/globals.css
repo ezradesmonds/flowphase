@@ -838,6 +838,52 @@ select {
   background: linear-gradient(180deg, rgba(0, 229, 255, 0.025), transparent 150px), var(--surface);
 }
 
+.research-brief {
+  margin: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--cyan);
+  background: #050a11;
+}
+.research-brief > small {
+  color: var(--cyan);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+.research-brief h4 {
+  margin: 6px 0 14px;
+  color: var(--text-bright);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.research-brief-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.research-brief h5 {
+  color: var(--text);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.research-brief p, .research-brief li {
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.research-brief ul {
+  padding-left: 16px;
+  margin: 0;
+}
+.research-brief .research-brief-limit {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .phase-broker-heading,
 .phase-broker-section-heading,
 .phase-scoreboard-heading,
@@ -1116,6 +1162,7 @@ select {
 }
 
 @media (max-width: 900px) {
+  .research-brief-grid,
   .signal-basis-banner,
   .evidence-columns,
   .evidence-audit-grid {

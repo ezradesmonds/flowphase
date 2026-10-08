@@ -3,9 +3,13 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import type { Intelligence } from "@/domain/intelligence";
-import type { PhaseEvidence, PhaseRegion, PrimaryPhase } from "@/domain/market";
+import type { PhaseRegion, PrimaryPhase } from "@/domain/market";
 import { inventoryByPhase } from "@/lib/intelligence/extended/inventory";
 import { sessionDate } from "@/lib/phases/features";
+import {
+  evidenceLabel,
+  researchBrief,
+} from "@/lib/intelligence/research-brief";
 import { Value } from "./research-primitives";
 
 const PHASE_ORDER: PrimaryPhase[] = [
@@ -15,36 +19,13 @@ const PHASE_ORDER: PrimaryPhase[] = [
   "DISTRIBUSI",
 ];
 
-const signalLabels: Record<string, string> = {
-  volumeGrowth: "Pertumbuhan volume",
-  attentionGrowth: "Peningkatan aktivitas",
-  breakoutAttempt: "Upaya menembus batas harga",
-  controlledPriceImpact: "Dampak harga terkendali",
-  lowVolumeCorrection: "Koreksi volume rendah",
-  inventoryGrowth: "Pertumbuhan observed inventory",
-  inventoryDepletion: "Penurunan observed inventory",
-  sellerDispersion: "Penyebaran seller",
-  buyerDispersion: "Penyebaran buyer",
-  concentration: "Konsentrasi broker",
-  crossing: "Crossing-risk proxy",
-  scoreMargin: "Jarak skor antarfase",
-  pendingConfirmation: "Konfirmasi fase tertunda",
-};
-
-function evidenceLabel(item: PhaseEvidence) {
-  return (
-    signalLabels[item.feature] ??
-    item.feature.replace(/([a-z])([A-Z])/g, "$1 $2").replaceAll("_", " ")
-  );
-}
-
 function basis(region: PhaseRegion) {
   if (region.brokerEvidence === "BROKER_SUPPORTED") {
     return {
       label: "SECTORS-BACKED FLOWPHASE CANDIDATE",
       tone: "verified",
       detail:
-        "Phase score combines TradingView price/volume context with Sectors broker aggregates available to this analysis window.",
+        "Phase score combines TradingView price/volume with available Sectors broker aggregates in the trailing model window, which may include sessions before this region starts.",
     };
   }
   if (region.brokerEvidence === "PRICE_VOLUME_ONLY") {
@@ -85,6 +66,7 @@ export function PhaseBrokerEvidence({
   const buyers = rows.filter((r) => r.metrics.netLot.value! > 0).slice(0, 3);
   const sellers = rows.filter((r) => r.metrics.netLot.value! < 0).slice(-3);
   const status = basis(region);
+  const brief = researchBrief(region);
 
   const supporting = region.evidenceItems
     .filter((e) => e.status !== "UNAVAILABLE" && e.feature !== "phase")
@@ -102,9 +84,7 @@ export function PhaseBrokerEvidence({
     ),
   ];
   const maxCrossingRisk = rows.length
-    ? Math.max(
-        ...rows.map((r) => r.metrics.crossingRisk.value ?? 0),
-      )
+    ? Math.max(...rows.map((r) => r.metrics.crossingRisk.value ?? 0))
     : null;
 
   return (
@@ -118,9 +98,57 @@ export function PhaseBrokerEvidence({
           <h3>{region.phase.replaceAll("_", " ")}</h3>
         </div>
         <span>
-          {sessionDate(region.startTimestamp)} → {sessionDate(region.endTimestamp)}
+          {sessionDate(region.startTimestamp)} →{" "}
+          {sessionDate(region.endTimestamp)}
         </span>
       </div>
+
+      <section
+        className="research-brief"
+        aria-label="Ringkasan riset fase terpilih"
+      >
+        <small>RINGKASAN RISET // PERIODE TERPILIH</small>
+        <h4>{brief.conclusion}</h4>
+        <div className="research-brief-grid">
+          <div>
+            <h5>Yang mendukung</h5>
+            {brief.supporting.length ? (
+              <ul>
+                {brief.supporting.map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>
+                Belum ada dukungan terukur yang cukup untuk kandidat fase ini.
+              </p>
+            )}
+          </div>
+          <div>
+            <h5>Yang perlu diragukan</h5>
+            {brief.caution.length ? (
+              <ul>
+                {brief.caution.map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>
+                Tidak ada bukti penyangkal eksplisit yang tercatat; ini bukan
+                bukti bahwa kandidat pasti benar.
+              </p>
+            )}
+          </div>
+          <div>
+            <h5>Periksa berikutnya</h5>
+            <p>{brief.nextCheck}</p>
+          </div>
+        </div>
+        <p className="research-brief-limit">
+          Ringkasan aturan model, bukan rekomendasi investasi. Skor dukungan
+          bukan peluang profit; net broker bukan kepemilikan absolut.
+        </p>
+      </section>
 
       <div className={`signal-basis-banner ${status.tone}`}>
         <div>
@@ -147,12 +175,14 @@ export function PhaseBrokerEvidence({
           <span>Freshness / input quality adjustment</span>
         </div>
         <div>
-          <small>SECTORS BROKER SUPPORT</small>
+          <small>SECTORS BROKER INPUTS USED</small>
           <strong>
             {region.brokerEvidence === "BROKER_SUPPORTED" ? "YES" : "NO"}
           </strong>
           <span>
-            {rows.length ? `${rows.length} brokers in selected period` : "No usable broker rows"}
+            {rows.length
+              ? `${rows.length} brokers in selected period`
+              : "No same-period rows; check the trailing model window"}
           </span>
         </div>
       </div>
@@ -210,7 +240,9 @@ export function PhaseBrokerEvidence({
               ))}
             </ul>
           ) : (
-            <p className="phase-help">No supporting evidence items available.</p>
+            <p className="phase-help">
+              No supporting evidence items available.
+            </p>
           )}
         </div>
 
@@ -237,7 +269,9 @@ export function PhaseBrokerEvidence({
               ))}
             </ul>
           ) : (
-            <p className="phase-help">No explicit opposing evidence recorded.</p>
+            <p className="phase-help">
+              No explicit opposing evidence recorded.
+            </p>
           )}
         </div>
       </div>
@@ -313,12 +347,14 @@ export function PhaseBrokerEvidence({
           <div className="phase-broker-empty">
             <strong>No Sectors broker rows for the selected period</strong>
             <p>
-              Price/volume context may still form a candidate, but broker-flow
-              confirmation cannot be claimed for this region.
+              {region.brokerEvidence === "BROKER_SUPPORTED"
+                ? "The model used broker inputs from preceding sessions in its trailing window. There are no broker transactions to display within this region's exact dates."
+                : "Price/volume context may still form a candidate, but broker-flow confirmation cannot be claimed for this region."}
             </p>
             {analysis.broker.flows.length > 0 && (
               <small>
-                Available broker history: {analysis.broker.start} — {analysis.broker.end}
+                Available broker history: {analysis.broker.start} —{" "}
+                {analysis.broker.end}
               </small>
             )}
           </div>
@@ -327,7 +363,8 @@ export function PhaseBrokerEvidence({
 
       <details className="phase-evidence-details evidence-audit-details">
         <summary>
-          Technical audit trail · warnings, sources and raw evidence ({region.evidence.length})
+          Technical audit trail · warnings, sources and raw evidence (
+          {region.evidence.length})
         </summary>
         <div className="evidence-audit-grid">
           <div>
